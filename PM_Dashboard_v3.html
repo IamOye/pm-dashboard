@@ -1575,6 +1575,15 @@ function countUpMoney(el, target, dur) {
   })(start);
 }
 
+function chartColors() {
+  const s = getComputedStyle(document.documentElement);
+  return {
+    text:   s.getPropertyValue('--text').trim()   || '#e8edf5',
+    muted:  s.getPropertyValue('--muted').trim()  || '#6b7f9a',
+    border: s.getPropertyValue('--border').trim() || 'rgba(255,255,255,.08)',
+    card:   s.getPropertyValue('--card').trim()   || '#0f1c2e',
+  };
+}
 function renderDashboard() {
   const projects = filteredProjects();
   const allProj = DATA.projects;
@@ -1665,7 +1674,8 @@ function renderDashboard() {
   const statusColors = ['#16a34a','#d97706','#dc2626','#7c3aed','#94a3b8'];
 
   if (statusChart) statusChart.destroy();
-  statusChart = new Chart(document.getElementById('statusChart'), {
+  statusChart = const cc = chartColors();
+  new Chart(document.getElementById('statusChart'), {
     type:'doughnut',
     data:{
       labels: statusLabels.map(capitalize),
@@ -1687,7 +1697,7 @@ function renderDashboard() {
         legend:{
           position:'right',
           labels:{
-            color:'var(--text)',
+            color:cc.text,
             font:{size:11,weight:'600'},
             padding:14,
             usePointStyle:true,
@@ -1695,11 +1705,11 @@ function renderDashboard() {
           }
         },
         tooltip:{
-          backgroundColor:'var(--card)',
-          borderColor:'var(--border)',
+          backgroundColor:cc.card,
+          borderColor:cc.border,
           borderWidth:1,
-          titleColor:'var(--text)',
-          bodyColor:'var(--muted)',
+          titleColor:cc.text,
+          bodyColor:cc.muted,
           titleFont:{size:12,weight:'700'},
           bodyFont:{size:11},
           padding:12,
@@ -1766,7 +1776,7 @@ function renderDashboard() {
       plugins:{
         legend:{
           labels:{
-            color:'var(--text)',
+            color:cc.text,
             font:{size:11,weight:'600'},
             padding:16,
             usePointStyle:true,
@@ -1774,11 +1784,11 @@ function renderDashboard() {
           }
         },
         tooltip:{
-          backgroundColor:'var(--card)',
-          borderColor:'var(--border)',
+          backgroundColor:cc.card,
+          borderColor:cc.border,
           borderWidth:1,
-          titleColor:'var(--text)',
-          bodyColor:'var(--muted)',
+          titleColor:cc.text,
+          bodyColor:cc.muted,
           titleFont:{size:12,weight:'700'},
           bodyFont:{size:11},
           padding:12,
@@ -1788,15 +1798,15 @@ function renderDashboard() {
       },
       scales:{
         x:{
-          ticks:{color:'var(--muted)',font:{size:10,weight:'600'}},
-          grid:{color:'var(--border)',lineWidth:.6},
-          border:{color:'var(--border)'},
+          ticks:{color:cc.muted,font:{size:10,weight:'600'}},
+          grid:{color:cc.border,lineWidth:.6},
+          border:{color:cc.border},
           stacked:false
         },
         y:{
-          ticks:{color:'var(--muted)',font:{size:10,weight:'600'},callback:v=>'₦'+v+'bn'},
-          grid:{color:'var(--border)',lineWidth:.6},
-          border:{color:'var(--border)'},
+          ticks:{color:cc.muted,font:{size:10,weight:'600'},callback:v=>'₦'+v+'bn'},
+          grid:{color:cc.border,lineWidth:.6},
+          border:{color:cc.border},
           beginAtZero:true
         }
       }
@@ -4186,6 +4196,12 @@ function toggleTheme(){
     localStorage.setItem('evd_theme','light');
     if(btn) btn.textContent = '☀️';
   }
+  // Re-render charts so they pick up new computed CSS colours
+  requestAnimationFrame(function(){
+    if(statusChart)  { statusChart.destroy();  statusChart  = null; }
+    if(budgetChart)  { budgetChart.destroy();  budgetChart  = null; }
+    renderDashboard();
+  });
 }
 
 /* ═══════════════════════════════════════════════
