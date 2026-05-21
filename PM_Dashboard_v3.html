@@ -117,6 +117,15 @@ body{display:flex;min-height:100vh;background:var(--bg);color:var(--text);font-f
 .prog-bar{background:rgba(255,255,255,.08);border-radius:4px;height:6px;margin-bottom:5px;overflow:hidden}
 .prog-fill{height:100%;border-radius:4px;transition:width .3s}
 .prog-label{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);font-weight:600}
+.kpi-strip{border-top:1px solid var(--border);margin-top:12px;padding-top:10px;display:flex;flex-direction:column;gap:5px}
+.kpi-strip-row{display:flex;align-items:center;gap:5px}
+.kpi-strip-ico{width:14px;text-align:center;flex-shrink:0;font-size:11px;line-height:1}
+.kpi-strip-lbl{color:var(--muted);width:54px;flex-shrink:0;font-weight:700;text-transform:uppercase;letter-spacing:.3px;font-size:9.5px}
+.kpi-chip{border:1px solid var(--border);border-radius:5px;padding:2px 6px;font-size:10.5px;font-weight:700;white-space:nowrap;letter-spacing:.1px}
+.kpi-chip.g{border-color:rgba(16,185,129,.35);color:var(--green);background:rgba(16,185,129,.06)}
+.kpi-chip.y{border-color:rgba(245,158,11,.35);color:var(--yellow);background:rgba(245,158,11,.06)}
+.kpi-chip.r{border-color:rgba(239,68,68,.35);color:var(--red);background:rgba(239,68,68,.06)}
+.kpi-chip.m{border-color:var(--border);color:var(--muted);background:transparent}
 
 /* BADGES */
 .badge{padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;letter-spacing:.1px}
@@ -1247,6 +1256,13 @@ const SAMPLE = {
     {id:'h10',pid:'p4',number:'P-PAU-002',location:'Basement / Plant Room',description:'Fire suppression equipment off-site - storage and load verification required.',trade:'Fire Suppression',priority:'high',status:'in-progress',assignedTo:'Bay Contracting + Bezal Engineering',dueDate:'2026-05-29',notes:'Storage room agreed. Bezal to confirm load values. Goldfield to commence scaffolding/welding 11 May.'},
     {id:'h11',pid:'p4',number:'P-PAU-003',location:'Phase 1 First Floor',description:'FF slab casting final 50% - target 21 May 2026.',trade:'Civil / Structural',priority:'critical',status:'in-progress',assignedTo:'Bay Contracting Ltd',dueDate:'2026-05-21',notes:'Reinforcement, formwork, MEP first-fix all confirmed ready for casting.'},
     {id:'h12',pid:'p4',number:'P-PAU-004',location:'All Areas',description:'Tile and finishes samples - price-lock against inflation risk required.',trade:'Finishes',priority:'medium',status:'outstanding',assignedTo:'Vicanto PSL / Caltec Designs',dueDate:'2026-06-30',notes:'Sample approvals in progress. Inflation on tiles flagged at May 8 meeting.'}
+  ],
+  kpis: [
+    { pid:'p1', cpi:0.97, bv:-18,  spi:0.89, milestoneRate:72,  ltifr:0.0, auditScore:92, inspPassRate:88, rfiTurnaround:3.2, labourProd:78, headcount:38, headcountPlan:45 },
+    { pid:'p2', cpi:1.03, bv:22,   spi:1.05, milestoneRate:95,  ltifr:0.0, auditScore:96, inspPassRate:94, rfiTurnaround:2.1, labourProd:85, headcount:12, headcountPlan:15 },
+    { pid:'p3', cpi:0.74, bv:-52,  spi:0.72, milestoneRate:48,  ltifr:0.0, auditScore:78, inspPassRate:82, rfiTurnaround:6.8, labourProd:65, headcount:28, headcountPlan:40 },
+    { pid:'p4', cpi:0.91, bv:-8,   spi:0.87, milestoneRate:58,  ltifr:0.0, auditScore:88, inspPassRate:90, rfiTurnaround:4.2, labourProd:72, headcount:45, headcountPlan:50 },
+    { pid:'p5', cpi:null, bv:null, spi:null, milestoneRate:null, ltifr:null, auditScore:null, inspPassRate:null, rfiTurnaround:null, labourProd:null, headcount:null, headcountPlan:null }
   ]
 };
 
@@ -1278,6 +1294,7 @@ function load() {
     if (!DATA.rfis)         DATA.rfis         = JSON.parse(JSON.stringify(SAMPLE.rfis));
     if (!DATA.payments)     DATA.payments     = JSON.parse(JSON.stringify(SAMPLE.payments));
     if (!DATA.handover)     DATA.handover     = JSON.parse(JSON.stringify(SAMPLE.handover));
+    if (!DATA.kpis)         DATA.kpis         = JSON.parse(JSON.stringify(SAMPLE.kpis));
   } catch(e) {
     DATA = JSON.parse(JSON.stringify(SAMPLE));
   }
@@ -1593,6 +1610,39 @@ function renderDashboard() {
   document.getElementById('dash-proj-grid').innerHTML = projects.map(projCard).join('') || '<div class="empty">No projects match current filter</div>';
 }
 
+function kpiColor(val,type){
+  if(val===null||val===undefined)return 'm';
+  switch(type){
+    case 'cpi':      return val>=1.0?'g':val>=0.9?'y':'r';
+    case 'spi':      return val>=1.0?'g':val>=0.9?'y':'r';
+    case 'bv':       return val>=0?'g':val>=-10?'y':'r';
+    case 'milestone':return val>=80?'g':val>=60?'y':'r';
+    case 'ltifr':    return val===0?'g':val<1?'y':'r';
+    case 'audit':    return val>=90?'g':val>=75?'y':'r';
+    case 'pass':     return val>=90?'g':val>=75?'y':'r';
+    case 'rfi':      return val<=3?'g':val<=7?'y':'r';
+    case 'labour':   return val>=80?'g':val>=60?'y':'r';
+    case 'hc':       return val>=0.9?'g':val>=0.7?'y':'r';
+    default: return 'm';
+  }
+}
+function kpiStripHtml(pid){
+  var k=(DATA.kpis||[]).find(function(x){return x.pid===pid;});
+  if(!k)return '';
+  function chip(label,rawVal,type){
+    if(label===null||label===undefined)return '<span class="kpi-chip m">N/A</span>';
+    return '<span class="kpi-chip '+kpiColor(rawVal,type)+'">'+label+'</span>';
+  }
+  var bvLabel=k.bv!=null?'BV '+(k.bv>=0?'+':'')+'\u20a6'+k.bv+'m':null;
+  var hcRatio=(k.headcount!=null&&k.headcountPlan)?k.headcount/k.headcountPlan:null;
+  return '<div class="kpi-strip">'+
+    '<div class="kpi-strip-row"><span class="kpi-strip-ico">\ud83d\udcb0</span><span class="kpi-strip-lbl">Financial</span>'+chip(k.cpi!=null?'CPI '+k.cpi.toFixed(2):null,k.cpi,'cpi')+chip(bvLabel,k.bv,'bv')+'</div>'+
+    '<div class="kpi-strip-row"><span class="kpi-strip-ico">\u23f1</span><span class="kpi-strip-lbl">Schedule</span>'+chip(k.spi!=null?'SPI '+k.spi.toFixed(2):null,k.spi,'spi')+chip(k.milestoneRate!=null?'MS '+k.milestoneRate+'%':null,k.milestoneRate,'milestone')+'</div>'+
+    '<div class="kpi-strip-row"><span class="kpi-strip-ico">\ud83e\uddbf</span><span class="kpi-strip-lbl">Safety</span>'+chip(k.ltifr!=null?'LTIFR '+k.ltifr:null,k.ltifr,'ltifr')+chip(k.auditScore!=null?'Audit '+k.auditScore+'%':null,k.auditScore,'audit')+'</div>'+
+    '<div class="kpi-strip-row"><span class="kpi-strip-ico">\ud83d\udee0</span><span class="kpi-strip-lbl">Quality</span>'+chip(k.inspPassRate!=null?'Pass '+k.inspPassRate+'%':null,k.inspPassRate,'pass')+chip(k.rfiTurnaround!=null?'RFI '+k.rfiTurnaround+'d':null,k.rfiTurnaround,'rfi')+'</div>'+
+    '<div class="kpi-strip-row"><span class="kpi-strip-ico">\ud83d\ude9c</span><span class="kpi-strip-lbl">Ops</span>'+chip(k.labourProd!=null?'Labour '+k.labourProd+'%':null,k.labourProd,'labour')+chip(hcRatio!=null?'HC '+k.headcount+'/'+k.headcountPlan:null,hcRatio,'hc')+'</div>'+
+    '</div>';
+}
 function projCard(p) {
   const cBadge = companyBadge(p.company);
   return `
@@ -1610,6 +1660,7 @@ function projCard(p) {
       </div>
       <div class="prog-bar"><div class="prog-fill" style="width:${p.progress}%;background:${progColor(p.status)}"></div></div>
       <div class="prog-label"><span>Progress</span><span>${p.progress}%</span></div>
+      ${kpiStripHtml(p.id)}
     </div>
   </div>`;
 }
