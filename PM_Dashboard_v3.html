@@ -682,7 +682,6 @@ tr:hover td{background:rgba(99,102,241,.07)}
     <select id="companyFilter" onchange="setCompany(this.value)">
       <option value="">All Companies</option>
       <option value="Everyday Group">🟠 Everyday Group</option>
-      <option value="VGS Homeland">🟢 VGS Homeland</option>
     </select>
     <select id="projectFilter" onchange="setProject(this.value)">
       <option value="">All Projects</option>
@@ -1265,12 +1264,19 @@ function load() {
     const s = localStorage.getItem(STORAGE_KEY);
     DATA = s ? JSON.parse(s) : JSON.parse(JSON.stringify(SAMPLE));
     // migrate: add documents array if missing
-    if (!DATA.user) DATA.user = JSON.parse(JSON.stringify(SAMPLE.user));
-    if (!DATA.documents) DATA.documents = JSON.parse(JSON.stringify(SAMPLE.documents));
-    if (!DATA.procurement) DATA.procurement = JSON.parse(JSON.stringify(SAMPLE.procurement));
-    if (!DATA.rfis) DATA.rfis = JSON.parse(JSON.stringify(SAMPLE.rfis));
-    if (!DATA.payments) DATA.payments = JSON.parse(JSON.stringify(SAMPLE.payments));
-    if (!DATA.handover) DATA.handover = JSON.parse(JSON.stringify(SAMPLE.handover));
+    if (!DATA.user)         DATA.user         = JSON.parse(JSON.stringify(SAMPLE.user));
+    if (!DATA.milestones)   DATA.milestones   = JSON.parse(JSON.stringify(SAMPLE.milestones));
+    if (!DATA.budgets)      DATA.budgets      = JSON.parse(JSON.stringify(SAMPLE.budgets));
+    if (!DATA.variations)   DATA.variations   = JSON.parse(JSON.stringify(SAMPLE.variations));
+    if (!DATA.risks)        DATA.risks        = JSON.parse(JSON.stringify(SAMPLE.risks));
+    if (!DATA.issues)       DATA.issues       = JSON.parse(JSON.stringify(SAMPLE.issues));
+    if (!DATA.visits)       DATA.visits       = JSON.parse(JSON.stringify(SAMPLE.visits));
+    if (!DATA.meetings)     DATA.meetings     = JSON.parse(JSON.stringify(SAMPLE.meetings));
+    if (!DATA.documents)    DATA.documents    = JSON.parse(JSON.stringify(SAMPLE.documents));
+    if (!DATA.procurement)  DATA.procurement  = JSON.parse(JSON.stringify(SAMPLE.procurement));
+    if (!DATA.rfis)         DATA.rfis         = JSON.parse(JSON.stringify(SAMPLE.rfis));
+    if (!DATA.payments)     DATA.payments     = JSON.parse(JSON.stringify(SAMPLE.payments));
+    if (!DATA.handover)     DATA.handover     = JSON.parse(JSON.stringify(SAMPLE.handover));
   } catch(e) {
     DATA = JSON.parse(JSON.stringify(SAMPLE));
   }
@@ -3511,15 +3517,15 @@ function renderWizard() {
     // Phase tab pills
     const phasePills = WIZ_PHASES.map(ph=>{
       const isActive = ph.id === activePhase;
-      const style = isActive ? \`background:\${ph.color};border-color:\${ph.color}\` : '';
-      return \`<div class="wiz-phase\${isActive?' active':''}\${ph.id==='All'?' wiz-phase-all':''}" onclick="wizardSetPhase('\${ph.id}')" style="\${style}">
-        <span class="wiz-phase-dot" style="background:\${isActive?'rgba(255,255,255,.7)':ph.color}"></span>
-        \${ph.label}
-      </div>\`;
+      const style = isActive ? `background:${ph.color};border-color:${ph.color}` : '';
+      return `<div class="wiz-phase${isActive?' active':''}${ph.id==='All'?' wiz-phase-all':''}" onclick="wizardSetPhase('${ph.id}')" style="${style}">
+        <span class="wiz-phase-dot" style="background:${isActive?'rgba(255,255,255,.7)':ph.color}"></span>
+        ${ph.label}
+      </div>`;
     }).join('');
 
     // Category sub-tabs (only cats present in this phase)
-    const catTabs = phaseCats.map(c=>\`<div class="wiz-cat \${c===activeCat?'active':''}" onclick="wizardSetCat('\${c}')">\${c}</div>\`).join('');
+    const catTabs = phaseCats.map(c=>`<div class="wiz-cat ${c===activeCat?'active':''}" onclick="wizardSetCat('${c}')">${c}</div>`).join('');
 
     // Active phase meta
     const phaseMeta = activePhase !== 'All' ? WIZ_PHASES.find(p=>p.id===activePhase) : null;
@@ -3531,16 +3537,16 @@ function renderWizard() {
       construction:'Active site delivery - progress reporting, instructions, QA/QC, daily records and claims.',
       'post-construction':'Commissioning, practical completion, snagging, handover and closeout.'
     };
-    const bannerHtml = phaseMeta ? \`
-      <div class="wiz-phase-banner" style="background:linear-gradient(135deg,\${phaseMeta.color}18,\${phaseMeta.color}08);border-color:\${phaseMeta.color}33">
-        <div class="wiz-phase-banner-icon" style="background:\${phaseMeta.color}22">
-          <i data-lucide="\${phaseMeta.icon}" style="width:20px;height:20px;stroke:\${phaseMeta.color};fill:none;stroke-width:2"></i>
+    const bannerHtml = phaseMeta ? `
+      <div class="wiz-phase-banner" style="background:linear-gradient(135deg,${phaseMeta.color}18,${phaseMeta.color}08);border-color:${phaseMeta.color}33">
+        <div class="wiz-phase-banner-icon" style="background:${phaseMeta.color}22">
+          <i data-lucide="${phaseMeta.icon}" style="width:20px;height:20px;stroke:${phaseMeta.color};fill:none;stroke-width:2"></i>
         </div>
         <div>
-          <h4>\${phaseMeta.label}</h4>
-          <p>\${phaseDescs[phaseMeta.id]||''}</p>
+          <h4>${phaseMeta.label}</h4>
+          <p>${phaseDescs[phaseMeta.id]||''}</p>
         </div>
-      </div>\` : '';
+      </div>` : '';
 
     // Group documents by category for "All phases" or render flat for a specific phase
     let gridHtml = '';
@@ -3550,18 +3556,18 @@ function renderWizard() {
         const pDocs = WIZARD_DOC_TYPES.filter(t=>t.phase===ph.id);
         if (!pDocs.length) return;
         const catGroups = [...new Set(pDocs.map(t=>t.cat))];
-        gridHtml += \`<div class="wiz-sub-label"><span class="wiz-phase-dot" style="background:\${ph.color};width:9px;height:9px;flex-shrink:0"></span>\${ph.label}</div>\`;
+        gridHtml += `<div class="wiz-sub-label"><span class="wiz-phase-dot" style="background:${ph.color};width:9px;height:9px;flex-shrink:0"></span>${ph.label}</div>`;
         catGroups.forEach(cat=>{
           const catDocs = pDocs.filter(t=>t.cat===cat);
-          gridHtml += \`<div class="wiz-cat-group">
-            <div class="wiz-cat-group-hdr"><span>\${cat}</span><span class="wiz-cat-count">\${catDocs.length} docs</span></div>
-            <div class="wiz-opt-grid">\${catDocs.map(t=>\`
-              <div class="wiz-opt \${wizardState.docType===t.key?'selected':''}" id="wopt-\${t.key}" onclick="wizardSelectType('\${t.key}')">
-                <div class="wiz-opt-cat">\${t.cat}</div>
-                <div class="wiz-opt-icon"><i data-lucide="\${t.lucide||'file-text'}"></i></div>
-                <div class="wiz-opt-label">\${t.label}</div>
-                <div class="wiz-opt-desc">\${t.desc}</div>
-              </div>\`).join('')}</div></div>\`;
+          gridHtml += `<div class="wiz-cat-group">
+            <div class="wiz-cat-group-hdr"><span>${cat}</span><span class="wiz-cat-count">${catDocs.length} docs</span></div>
+            <div class="wiz-opt-grid">${catDocs.map(t=>`
+              <div class="wiz-opt ${wizardState.docType===t.key?'selected':''}" id="wopt-${t.key}" onclick="wizardSelectType('${t.key}')">
+                <div class="wiz-opt-cat">${t.cat}</div>
+                <div class="wiz-opt-icon"><i data-lucide="${t.lucide||'file-text'}"></i></div>
+                <div class="wiz-opt-label">${t.label}</div>
+                <div class="wiz-opt-desc">${t.desc}</div>
+              </div>`).join('')}</div></div>`;
         });
       });
     } else if (activePhase !== 'All' && activeCat === 'All') {
@@ -3569,40 +3575,40 @@ function renderWizard() {
       const catGroups = [...new Set(byPhase.map(t=>t.cat))];
       catGroups.forEach(cat=>{
         const catDocs = byPhase.filter(t=>t.cat===cat);
-        gridHtml += \`<div class="wiz-cat-group">
-          <div class="wiz-cat-group-hdr"><span>\${cat}</span><span class="wiz-cat-count">\${catDocs.length} docs</span></div>
-          <div class="wiz-opt-grid">\${catDocs.map(t=>\`
-            <div class="wiz-opt \${wizardState.docType===t.key?'selected':''}" id="wopt-\${t.key}" onclick="wizardSelectType('\${t.key}')">
-              <div class="wiz-opt-cat">\${t.cat}</div>
-              <div class="wiz-opt-icon"><i data-lucide="\${t.lucide||'file-text'}"></i></div>
-              <div class="wiz-opt-label">\${t.label}</div>
-              <div class="wiz-opt-desc">\${t.desc}</div>
-            </div>\`).join('')}</div></div>\`;
+        gridHtml += `<div class="wiz-cat-group">
+          <div class="wiz-cat-group-hdr"><span>${cat}</span><span class="wiz-cat-count">${catDocs.length} docs</span></div>
+          <div class="wiz-opt-grid">${catDocs.map(t=>`
+            <div class="wiz-opt ${wizardState.docType===t.key?'selected':''}" id="wopt-${t.key}" onclick="wizardSelectType('${t.key}')">
+              <div class="wiz-opt-cat">${t.cat}</div>
+              <div class="wiz-opt-icon"><i data-lucide="${t.lucide||'file-text'}"></i></div>
+              <div class="wiz-opt-label">${t.label}</div>
+              <div class="wiz-opt-desc">${t.desc}</div>
+            </div>`).join('')}</div></div>`;
       });
     } else {
       // Specific phase + specific cat - flat grid
-      gridHtml = \`<div class="wiz-opt-grid">\${filtered.map(t=>\`
-        <div class="wiz-opt \${wizardState.docType===t.key?'selected':''}" id="wopt-\${t.key}" onclick="wizardSelectType('\${t.key}')">
-          <div class="wiz-opt-cat">\${t.cat}</div>
-          <div class="wiz-opt-icon"><i data-lucide="\${t.lucide||'file-text'}"></i></div>
-          <div class="wiz-opt-label">\${t.label}</div>
-          <div class="wiz-opt-desc">\${t.desc}</div>
-        </div>\`).join('')}</div>\`;
+      gridHtml = `<div class="wiz-opt-grid">${filtered.map(t=>`
+        <div class="wiz-opt ${wizardState.docType===t.key?'selected':''}" id="wopt-${t.key}" onclick="wizardSelectType('${t.key}')">
+          <div class="wiz-opt-cat">${t.cat}</div>
+          <div class="wiz-opt-icon"><i data-lucide="${t.lucide||'file-text'}"></i></div>
+          <div class="wiz-opt-label">${t.label}</div>
+          <div class="wiz-opt-desc">${t.desc}</div>
+        </div>`).join('')}</div>`;
     }
 
-    content.innerHTML = \`
+    content.innerHTML = `
       <div class="wizard-card">
         <h3 style="font-size:16px;font-weight:700;margin-bottom:4px">What document do you need to create?</h3>
         <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Choose a project phase, then a document category, then the specific document type.</p>
-        <div class="wiz-phases">\${phasePills}</div>
-        \${bannerHtml}
-        \${activePhase !== 'All' ? \`<div class="wiz-cats" style="margin-bottom:16px">\${catTabs}</div>\` : ''}
-        \${gridHtml || '<div style="color:var(--muted);padding:20px;text-align:center;font-size:13px">No documents found for this selection.</div>'}
+        <div class="wiz-phases">${phasePills}</div>
+        ${bannerHtml}
+        ${activePhase !== 'All' ? `<div class="wiz-cats" style="margin-bottom:16px">${catTabs}</div>` : ''}
+        ${gridHtml || '<div style="color:var(--muted);padding:20px;text-align:center;font-size:13px">No documents found for this selection.</div>'}
         <div class="wiz-next-bar" style="margin-top:18px">
-          <div class="wiz-sel-info">\${dt ? \`Selected: <strong>\${dt.label}</strong> &bull; <span style="color:var(--muted);font-size:11.5px">\${WIZ_PHASES.find(p=>p.id===dt.phase)?.label||dt.phase} &rsaquo; \${dt.cat}</span>\` : 'No document selected yet'}</div>
-          <button class="btn btn-primary" onclick="wizardNext()" \${!wizardState.docType?'disabled':''}>Next &#8594;</button>
+          <div class="wiz-sel-info">${dt ? `Selected: <strong>${dt.label}</strong> &bull; <span style="color:var(--muted);font-size:11.5px">${WIZ_PHASES.find(p=>p.id===dt.phase)?.label||dt.phase} &rsaquo; ${dt.cat}</span>` : 'No document selected yet'}</div>
+          <button class="btn btn-primary" onclick="wizardNext()" ${!wizardState.docType?'disabled':''}>Next &#8594;</button>
         </div>
-      </div>\`;
+      </div>`;
 
   } else if (wizardState.step === 1) {
     const projOpts = DATA.projects.map(p=>`<option value="${p.id}"${wizardState.project===p.id?' selected':''}>${p.name} (${p.company||''})</option>`).join('');
@@ -5091,23 +5097,11 @@ function buildExportRows() {
       if(tip){ tip.classList.remove('visible'); }
     }, 80);
   }
-  document.addEventListener('DOMContentLoaded', function(){
-    document.querySelectorAll('.nav-item[data-tip]').forEach(function(el){
-      el.addEventListener('mouseenter', function(){ showNavTip(el); });
-      el.addEventListener('mouseleave', hideNavTip);
-      el.addEventListener('click', hideNavTip);
-    });
+  document.querySelectorAll('.nav-item[data-tip]').forEach(function(el){
+    el.addEventListener('mouseenter', function(){ showNavTip(el); });
+    el.addEventListener('mouseleave', hideNavTip);
   });
-  // Also wire up after any dynamic re-render
-  window._wireNavTips = function(){
-    document.querySelectorAll('.nav-item[data-tip]').forEach(function(el){
-      el.onmouseenter = function(){ showNavTip(el); };
-      el.onmouseleave = hideNavTip;
-      el.onclick = (el.onclick||function(){});
-    });
-  };
 })();
 </script>
 </body>
 </html>
-                                         
