@@ -420,6 +420,268 @@ tbody tr{transition:background .12s ease}
 .nav-subitem.active .sub-count{background:rgba(99,102,241,.3);color:var(--accent-2)}
 
 
+
+/* ── Navigation History ── */
+function navBack() {
+  if (navHistory.length === 0) return;
+  var prev = navHistory.pop();
+  currentPage = prev;
+  document.querySelectorAll('.page').forEach(function(el){ el.classList.remove('active'); });
+  document.querySelectorAll('.nav-item').forEach(function(el){ el.classList.remove('active'); });
+  var pg = document.getElementById('pg-' + prev);
+  if (pg) pg.classList.add('active');
+  var titles = {
+    dashboard:'Portfolio Dashboard', projects:'Projects',
+    schedule:'Schedule & Milestones', budget:'Budget & Costs',
+    risks:'Risk Register', issues:'Issues Register',
+    visits:'Site Visits', meetings:'Meetings & Minutes', reports:'Monthly Reports',
+    documents:'Document Register', copilot:'AI Co-Pilot - Project Intelligence',
+    procurement:'Procurement Tracker', rfi:'RFI Tracker',
+    payment:'Payment Certificates (IPC)', handover:'Handover & Punchlist',
+    boq:'BoQ Wizard', wizard:'Document Wizard', 'project-detail':'Project Details'
+  };
+  document.getElementById('page-title').textContent = titles[prev] || prev;
+  var bb = document.getElementById('backBtn');
+  if (bb) bb.style.display = navHistory.length > 0 ? 'flex' : 'none';
+  var docGroup = document.getElementById('doc-nav-group');
+  if (docGroup) docGroup.classList.toggle('open', prev === 'documents');
+  var docHeader = document.getElementById('doc-nav-header');
+  if (docHeader) docHeader.classList.toggle('active', prev === 'documents');
+  renderPage();
+}
+
+/* ── Project Detail Page ── */
+var detailProjectId = null;
+var pdBudgetChart = null, pdSpiChart = null, pdRiskChart = null;
+
+function openProjectDetail(pid) {
+  detailProjectId = pid;
+  closeProjectKPI();
+  nav('project-detail');
+}
+
+function renderProjectDetail() {
+  var pid = detailProjectId;
+  var el = document.getElementById('pg-project-detail');
+  if (!pid) { el.innerHTML = '<div class="empty">No project selected.</div>'; return; }
+  var p   = (DATA.projects||[]).find(function(x){ return x.id===pid; });
+  if (!p)  { el.innerHTML = '<div class="empty">Project not found.</div>'; return; }
+  var k   = (DATA.kpis||[]).find(function(x){ return x.pid===pid; });
+  var bud = (DATA.budgets||[]).find(function(b){ return b.pid===pid; });
+  var ms  = (DATA.milestones||[]).filter(function(m){ return m.pid===pid; });
+  var risks  = (DATA.risks||[]).filter(function(r){ return r.pid===pid; });
+  var issues = (DATA.issues||[]).filter(function(i){ return i.pid===pid; });
+
+  if (pdBudgetChart) { pdBudgetChart.destroy(); pdBudgetChart = null; }
+  if (pdSpiChart)    { pdSpiChart.destroy();    pdSpiChart    = null; }
+  if (pdRiskChart)   { pdRiskChart.destroy();   pdRiskChart   = null; }
+
+  var pct = p.progress || 0;
+  var rc  = pct>=70?'#10b981':pct>=40?'#f59e0b':'#ef4444';
+  var r = 52, circ = 2*Math.PI*r, dash = (pct/100)*circ;
+
+  function kBig(val, lbl, suffix, type, max) {
+    var c = kpiColor(val, type);
+    var disp = (val===null||val===undefined) ? 'N/A' : (type==='cpi'||type==='spi') ? (+val).toFixed(2) : val+suffix;
+    var barPct = (max && val!==null && val!==undefined) ? Math.min(100, Math.round((val/max)*100)) : null;
+    var bc = c==='g'?'var(--green)':c==='y'?'var(--yellow)':c==='r'?'var(--red)':'var(--muted)';
+    return '<div class="pd-kpi-big '+c+'">'
+      +'<div class="pd-kpi-big-val '+c+'">'+disp+'</div>'
+      +'<div class="pd-kpi-big-lbl">'+lbl+'</div>'
+      +(barPct!==null?'<div class="pd-kpi-big-bar"><div class="pd-kpi-big-bar-fill" style="width:'+barPct+'%;background:'+bc+'"></div></div>':'')
+      +'</div>';
+  }
+
+  var msHtml = ms.length ? ms.slice(0,8).map(function(m){
+    return '<div class="pd-ms-row">'
+      +'<div class="pd-ms-dot '+m.status+'"></div>'
+      +'<div class="pd-ms-name">'+m.name+'</div>'
+      +'<span style="font-size:11px;color:var(--muted);margin-right:6px">'+m.progress+'%</span>'
+      +'<span style="font-size:11px;color:var(--muted);width:88px;text-align:right">'+(m.actual||m.planned||'-')+'</span>'
+      +'</div>';
+  }).join('') : '<div style="color:var(--muted);font-size:12px;padding:8px 0">No milestones recorded.</div>';
+
+  // Simulated 6-month S-curve
+  var months = ['M-5','M-4','M-3','M-2','M-1','Now'];
+  function sCurve(end) {
+    var pts = [];
+    for (var i=0;i<6;i++){ var t=(i+1)/6; pts.push(Math.round(end*(3*t*t-2*t*t*t))); }
+    return pts;
+  }
+  var spiNow = k&&k.spi!=null?k.spi:null;
+  var cpiNow = k&&k.cpi!=null?k.cpi:null;
+  var spiPts = spiNow ? [0.92,0.95,0.97,0.99,1.01,1].map(function(f){ return +(spiNow*f).toFixed(2); }) : null;
+  var cpiPts = cpiNow ? [0.94,0.96,0.98,1.00,1.01,1].map(function(f){ return +(cpiNow*f).toFixed(2); }) : null;
+
+  var rCrit=risks.filter(function(r){return r.rating==='critical';}).length;
+  var rHigh=risks.filter(function(r){return r.rating==='high';}).length;
+  var rMed =risks.filter(function(r){return r.rating==='medium';}).length;
+  var rLow =risks.filter(function(r){return r.rating==='low';}).length;
+  var openIss=issues.filter(function(i){return i.status==='open';}).length;
+
+  var spentPct = bud&&bud.approved>0 ? Math.min(100,Math.round(bud.actual/bud.approved*100)) : null;
+
+  var html = '<div class="pd-layout">'
+    // ── LEFT sidebar
+    +'<div class="pd-sidebar">'
+    +'<div class="pd-info-card">'
+    +'<div class="pd-info-top '+p.status+'"></div>'
+    +'<div class="pd-info-body">'
+    +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px">'
+    +'<div class="pd-proj-name">'+p.name+'</div>'
+    +'<div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end">'+companyBadge(p.company)+statusBadge(p.status)+'</div>'
+    +'</div>'
+    +'<div class="pd-meta">📍 '+p.location+'<br>👤 PM: '+p.pm+'<br>🏢 '+p.contractor+'<br>📆 '+(p.start||'')+' → '+(p.end||'')+'</div>'
+    +(p.description?'<div class="pd-desc">'+p.description.slice(0,220)+(p.description.length>220?'…':'')+'</div>':'')
+    // big progress ring
+    +'<div style="display:flex;flex-direction:column;align-items:center;padding:18px 0 10px">'
+    +'<div style="position:relative;width:120px;height:120px">'
+    +'<svg width="120" height="120" viewBox="0 0 120 120" style="transform:rotate(-90deg)">'
+    +'<circle cx="60" cy="60" r="'+r+'" fill="none" stroke="var(--border)" stroke-width="10"/>'
+    +'<circle cx="60" cy="60" r="'+r+'" fill="none" stroke="'+rc+'" stroke-width="10" stroke-linecap="round" stroke-dasharray="'+dash.toFixed(1)+' '+circ.toFixed(1)+'"/>'
+    +'</svg>'
+    +'<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">'
+    +'<div style="font-size:26px;font-weight:900;color:'+rc+'">'+pct+'%</div>'
+    +'<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">Progress</div>'
+    +'</div></div></div>'
+    +'</div></div>'
+    // Budget summary
+    +(bud?'<div class="pd-info-card"><div class="pd-info-body">'
+    +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:12px">💰 Budget</div>'
+    +'<div style="display:flex;flex-direction:column;gap:8px">'
+    +'<div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:var(--muted)">Approved</span><span style="font-weight:700;color:var(--text)">'+fmt(bud.approved)+'</span></div>'
+    +'<div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:var(--muted)">Spent</span><span style="font-weight:700;color:var(--yellow)">'+fmt(bud.actual)+'</span></div>'
+    +'<div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:var(--muted)">Variance</span>'
+    +'<span style="font-weight:700;color:'+(bud.approved-bud.actual>=0?'var(--green)':'var(--red)')+'">'+fmt(bud.approved-bud.actual)+'</span></div>'
+    +'<div class="prog-bar" style="margin-top:4px"><div class="prog-fill" style="width:'+(spentPct||0)+'%;background:'+progGradient(spentPct||0,'on_track')+'"></div></div>'
+    +'<div style="text-align:right;font-size:11px;color:var(--muted)">'+(spentPct||0)+'% consumed</div>'
+    +'</div></div></div>':'')
+    // Milestones
+    +'<div class="pd-info-card"><div class="pd-info-body">'
+    +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:12px">📅 Milestones ('+ms.length+')</div>'
+    +msHtml
+    +'</div></div>'
+    +'</div>'
+    // ── RIGHT charts area
+    +'<div class="pd-charts">'
+    // KPI tiles
+    +(k?'<div class="pd-chart-card">'
+    +'<div class="pd-chart-title">Performance Indicators</div>'
+    +'<div class="pd-chart-sub">Current period KPIs against thresholds</div>'
+    +'<div class="pd-chart-row">'
+    +kBig(k.cpi,'Cost Perf. Index','','cpi',1.5)
+    +kBig(k.spi,'Schedule Perf. Index','','spi',1.5)
+    +kBig(k.milestoneRate,'Milestone Rate','%','milestone',100)
+    +kBig(k.auditScore,'Audit Score','%','audit',100)
+    +kBig(k.inspPassRate,'Insp. Pass Rate','%','pass',100)
+    +kBig(k.labourProd,'Labour Productivity','%','labour',100)
+    +'</div></div>':'')
+    // Trend chart
+    +'<div class="pd-chart-card">'
+    +'<div class="pd-chart-title">Progress & Performance Trend</div>'
+    +'<div class="pd-chart-sub">S-curve progress with SPI/CPI overlay — last 6 months</div>'
+    +'<canvas id="pd-spi-chart" height="170"></canvas></div>'
+    // Budget chart
+    +(bud?'<div class="pd-chart-card">'
+    +'<div class="pd-chart-title">Budget vs Actual Spend</div>'
+    +'<div class="pd-chart-sub">Approved budget against current expenditure (₦ billions)</div>'
+    +'<canvas id="pd-budget-chart" height="110"></canvas></div>':'')
+    // Risk chart
+    +'<div class="pd-chart-card">'
+    +'<div class="pd-chart-title">Risk Profile</div>'
+    +'<div class="pd-chart-sub">'+risks.length+' open risks · '+openIss+' open issues</div>'
+    +'<div style="display:grid;grid-template-columns:180px 1fr;gap:20px;align-items:center">'
+    +'<canvas id="pd-risk-chart" height="180"></canvas>'
+    +'<div style="display:flex;flex-direction:column;gap:10px">'
+    +[['Critical',rCrit,'#ef4444'],['High',rHigh,'#f59e0b'],['Medium',rMed,'#3b82f6'],['Low',rLow,'#10b981']].map(function(row){
+      return '<div style="display:flex;align-items:center;gap:10px">'
+        +'<div style="width:10px;height:10px;border-radius:2px;background:'+row[2]+';flex-shrink:0"></div>'
+        +'<span style="font-size:13px;color:var(--muted);flex:1">'+row[0]+'</span>'
+        +'<span style="font-size:16px;font-weight:800;color:var(--text)">'+row[1]+'</span>'
+        +'</div>';
+    }).join('')
+    +'<div style="border-top:1px solid var(--border);padding-top:10px;display:flex;justify-content:space-between;align-items:center">'
+    +'<span style="font-size:12px;color:var(--muted)">Open Issues</span>'
+    +'<span style="font-size:18px;font-weight:800;color:var(--text)">'+openIss+'</span></div>'
+    +'</div></div></div>'
+    +'</div></div>'; // close pd-charts + pd-layout
+
+  el.innerHTML = html;
+
+  // ── Render charts ────────────────────────────────────────
+  setTimeout(function(){
+    var cc = chartColors();
+    // Trend (line)
+    var spiCtx = document.getElementById('pd-spi-chart');
+    if (spiCtx) {
+      var datasets = [{
+        label:'Progress %', data: sCurve(pct),
+        borderColor:'#6366f1', backgroundColor:'rgba(99,102,241,.13)',
+        tension:.4, fill:true, yAxisID:'y1', borderWidth:2.5, pointRadius:3
+      }];
+      if (spiPts) datasets.push({ label:'SPI', data:spiPts, borderColor:'#10b981', backgroundColor:'transparent', tension:.4, fill:false, yAxisID:'y2', borderWidth:2, pointRadius:3 });
+      if (cpiPts) datasets.push({ label:'CPI', data:cpiPts, borderColor:'#f59e0b', backgroundColor:'transparent', tension:.4, fill:false, yAxisID:'y2', borderWidth:2, pointRadius:3, borderDash:[4,3] });
+      pdSpiChart = new Chart(spiCtx, {
+        type:'line', data:{ labels:months, datasets:datasets },
+        options:{
+          animation:{duration:800,easing:'easeOutQuart'},
+          plugins:{ legend:{labels:{color:cc.text,font:{size:11},usePointStyle:true,pointStyle:'circle'}},
+            tooltip:{backgroundColor:cc.card,borderColor:cc.border,borderWidth:1,titleColor:cc.text,bodyColor:cc.muted,padding:10} },
+          scales:{
+            x:{ ticks:{color:cc.muted,font:{size:11}}, grid:{color:cc.border,lineWidth:.5}, border:{color:cc.border} },
+            y1:{ type:'linear',position:'left',min:0,max:100,
+              ticks:{color:cc.muted,font:{size:11},callback:function(v){return v+'%'}}, grid:{color:cc.border,lineWidth:.5}, border:{color:cc.border} },
+            y2:{ type:'linear',position:'right',min:0.5,max:1.5,
+              ticks:{color:cc.muted,font:{size:11},callback:function(v){return v.toFixed(1)}}, grid:{display:false}, border:{color:cc.border} }
+          }
+        }
+      });
+    }
+    // Budget (horizontal bar)
+    var budCtx = document.getElementById('pd-budget-chart');
+    if (budCtx && bud) {
+      var ctx2d = budCtx.getContext('2d');
+      var gA = ctx2d.createLinearGradient(0,0,400,0); gA.addColorStop(0,'rgba(37,99,235,.7)'); gA.addColorStop(1,'rgba(37,99,235,.1)');
+      var gS = ctx2d.createLinearGradient(0,0,400,0); gS.addColorStop(0,'rgba(245,158,11,.8)'); gS.addColorStop(1,'rgba(245,158,11,.1)');
+      pdBudgetChart = new Chart(budCtx, {
+        type:'bar', data:{ labels:[p.name],
+          datasets:[
+            {label:'Approved',data:[+(bud.approved/1e9).toFixed(2)],backgroundColor:gA,borderColor:'#2563eb',borderWidth:2,borderRadius:6,borderSkipped:false},
+            {label:'Actual Spent',data:[+(bud.actual/1e9).toFixed(2)],backgroundColor:gS,borderColor:'#f59e0b',borderWidth:2,borderRadius:6,borderSkipped:false}
+          ]},
+        options:{
+          indexAxis:'y', animation:{duration:800,easing:'easeOutQuart'},
+          plugins:{ legend:{labels:{color:cc.text,font:{size:11},usePointStyle:true,pointStyle:'circle'}},
+            tooltip:{backgroundColor:cc.card,borderColor:cc.border,borderWidth:1,titleColor:cc.text,bodyColor:cc.muted,
+              callbacks:{label:function(c){return ' ₦'+c.raw+'bn';}}} },
+          scales:{
+            x:{ticks:{color:cc.muted,font:{size:11},callback:function(v){return '₦'+v+'bn'}},grid:{color:cc.border,lineWidth:.5},border:{color:cc.border}},
+            y:{ticks:{color:cc.muted,font:{size:11}},grid:{display:false},border:{color:cc.border}}
+          }
+        }
+      });
+    }
+    // Risk (doughnut)
+    var rCtx = document.getElementById('pd-risk-chart');
+    if (rCtx) {
+      var total = rCrit+rHigh+rMed+rLow;
+      pdRiskChart = new Chart(rCtx, {
+        type:'doughnut',
+        data:{ labels:['Critical','High','Medium','Low'],
+          datasets:[{data:[rCrit||0.001,rHigh||0.001,rMed||0.001,rLow||0.001],
+            backgroundColor:['#ef4444','#f59e0b','#3b82f6','#10b981'],
+            borderWidth:3,borderColor:cc.card,hoverOffset:6,borderRadius:3}] },
+        options:{
+          cutout:'68%', animation:{animateRotate:true,animateScale:true,duration:800},
+          plugins:{ legend:{display:false},
+            tooltip:{backgroundColor:cc.card,borderColor:cc.border,borderWidth:1,titleColor:cc.text,bodyColor:cc.muted,
+              callbacks:{label:function(c){var v=c.raw<1?0:c.raw;return ' '+c.label+': '+v;}}} }
+        }
+      });
+    }
+  }, 50);
+}
+
 /* ── Project KPI Drawer ── */
 .proj-kpi-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:900;opacity:0;pointer-events:none;transition:opacity .28s ease}
 .proj-kpi-overlay.open{opacity:1;pointer-events:all}
@@ -460,6 +722,40 @@ tbody tr{transition:background .12s ease}
 .pkd-kpi-bar{height:100%;border-radius:2px;transition:width .6s ease}
 /* Footer */
 .pkd-footer{padding:16px 20px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0;position:sticky;bottom:0;background:var(--card)}
+
+
+/* ── Back Button ── */
+#backBtn{display:none;align-items:center;gap:5px;background:var(--bg-2);border:1px solid var(--border);color:var(--muted);font-size:12px;font-weight:600;padding:6px 12px;border-radius:8px;cursor:pointer;transition:all .15s;flex-shrink:0}
+#backBtn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+#backBtn svg{flex-shrink:0}
+/* ── Project Detail Page ── */
+.pd-layout{display:grid;grid-template-columns:340px 1fr;gap:24px;align-items:start}
+@media(max-width:900px){.pd-layout{grid-template-columns:1fr}}
+.pd-sidebar{display:flex;flex-direction:column;gap:16px;position:sticky;top:80px}
+.pd-info-card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.pd-info-top{height:5px}
+.pd-info-body{padding:20px}
+.pd-proj-name{font-size:16px;font-weight:800;color:var(--text);margin-bottom:8px;line-height:1.3}
+.pd-meta{font-size:12px;color:var(--muted);line-height:1.9;margin-bottom:14px}
+.pd-desc{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:14px;padding:10px 12px;background:var(--bg);border-radius:8px;border-left:3px solid var(--accent)}
+.pd-charts{display:flex;flex-direction:column;gap:20px}
+.pd-chart-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px}
+.pd-chart-title{font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+.pd-chart-sub{font-size:11px;color:var(--muted);margin-bottom:16px}
+.pd-chart-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:4px}
+.pd-kpi-big{padding:14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);border-top:3px solid transparent}
+.pd-kpi-big.g{border-top-color:var(--green)}.pd-kpi-big.y{border-top-color:var(--yellow)}.pd-kpi-big.r{border-top-color:var(--red)}.pd-kpi-big.m{border-top-color:var(--muted)}
+.pd-kpi-big-val{font-size:24px;font-weight:900;line-height:1}
+.pd-kpi-big-val.g{color:var(--green)}.pd-kpi-big-val.y{color:var(--yellow)}.pd-kpi-big-val.r{color:var(--red)}.pd-kpi-big-val.m{color:var(--muted)}
+.pd-kpi-big-lbl{font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-top:4px}
+.pd-kpi-big-bar{height:4px;background:var(--border);border-radius:2px;margin-top:8px;overflow:hidden}
+.pd-kpi-big-bar-fill{height:100%;border-radius:2px;transition:width .8s ease}
+.pd-ms-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)}
+.pd-ms-row:last-child{border-bottom:none}
+.pd-ms-name{flex:1;font-size:12px;color:var(--text);font-weight:500}
+.pd-ms-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.pd-ms-dot.completed{background:var(--green)}.pd-ms-dot.on_track{background:var(--accent)}
+.pd-ms-dot.at_risk{background:var(--yellow)}.pd-ms-dot.delayed{background:var(--red)}.pd-ms-dot.not_started{background:var(--muted)}
 
 /* PRINT */
 @media print{
@@ -821,6 +1117,10 @@ tbody tr{transition:background .12s ease}
 <!-- MAIN -->
 <div class="main">
   <div class="topbar">
+    <button id="backBtn" onclick="navBack()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Back
+    </button>
     <h1 id="page-title">Portfolio Dashboard</h1>
     <select id="companyFilter" onchange="setCompany(this.value)">
       <option value="">All Companies</option>
@@ -1095,6 +1395,7 @@ tbody tr{transition:background .12s ease}
       <div id="wiz-content"></div>
     </div>
     <div id="pg-boq" class="page"></div>
+    <div id="pg-project-detail" class="page"></div>
 
   </div>
 </div>
@@ -1481,7 +1782,12 @@ function populateProjectFilter() {
 /* ═══════════════════════════════════════════════
    NAVIGATION
 ═══════════════════════════════════════════════ */
+let navHistory = [];
+
 function nav(page) {
+  if (currentPage && currentPage !== page) navHistory.push(currentPage);
+  var bb = document.getElementById('backBtn');
+  if (bb) bb.style.display = navHistory.length > 0 ? 'flex' : 'none';
   currentPage = page;
   document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
@@ -1498,7 +1804,8 @@ function nav(page) {
     payment:'Payment Certificates (IPC)',
     handover:'Handover & Punchlist',
       boq:'BoQ Wizard',
-    wizard:'Document Wizard'
+    wizard:'Document Wizard',
+    'project-detail':'Project Details'
   };
   document.getElementById('page-title').textContent = titles[page] || page;
   const navItems = document.querySelectorAll('.nav-item');
@@ -1532,6 +1839,7 @@ function renderPage() {
     case 'handover':   renderHandover();   break;
     case 'wizard':     renderWizard();     break;
         case 'boq':        renderBoQ();        break;
+    case 'project-detail': renderProjectDetail(); break;
   }
   if(typeof lucide !== 'undefined') setTimeout(()=>lucide.createIcons(),80);
 }
@@ -1943,6 +2251,268 @@ function projCard(p) {
 }
 
 
+
+/* ── Navigation History ── */
+function navBack() {
+  if (navHistory.length === 0) return;
+  var prev = navHistory.pop();
+  currentPage = prev;
+  document.querySelectorAll('.page').forEach(function(el){ el.classList.remove('active'); });
+  document.querySelectorAll('.nav-item').forEach(function(el){ el.classList.remove('active'); });
+  var pg = document.getElementById('pg-' + prev);
+  if (pg) pg.classList.add('active');
+  var titles = {
+    dashboard:'Portfolio Dashboard', projects:'Projects',
+    schedule:'Schedule & Milestones', budget:'Budget & Costs',
+    risks:'Risk Register', issues:'Issues Register',
+    visits:'Site Visits', meetings:'Meetings & Minutes', reports:'Monthly Reports',
+    documents:'Document Register', copilot:'AI Co-Pilot - Project Intelligence',
+    procurement:'Procurement Tracker', rfi:'RFI Tracker',
+    payment:'Payment Certificates (IPC)', handover:'Handover & Punchlist',
+    boq:'BoQ Wizard', wizard:'Document Wizard', 'project-detail':'Project Details'
+  };
+  document.getElementById('page-title').textContent = titles[prev] || prev;
+  var bb = document.getElementById('backBtn');
+  if (bb) bb.style.display = navHistory.length > 0 ? 'flex' : 'none';
+  var docGroup = document.getElementById('doc-nav-group');
+  if (docGroup) docGroup.classList.toggle('open', prev === 'documents');
+  var docHeader = document.getElementById('doc-nav-header');
+  if (docHeader) docHeader.classList.toggle('active', prev === 'documents');
+  renderPage();
+}
+
+/* ── Project Detail Page ── */
+var detailProjectId = null;
+var pdBudgetChart = null, pdSpiChart = null, pdRiskChart = null;
+
+function openProjectDetail(pid) {
+  detailProjectId = pid;
+  closeProjectKPI();
+  nav('project-detail');
+}
+
+function renderProjectDetail() {
+  var pid = detailProjectId;
+  var el = document.getElementById('pg-project-detail');
+  if (!pid) { el.innerHTML = '<div class="empty">No project selected.</div>'; return; }
+  var p   = (DATA.projects||[]).find(function(x){ return x.id===pid; });
+  if (!p)  { el.innerHTML = '<div class="empty">Project not found.</div>'; return; }
+  var k   = (DATA.kpis||[]).find(function(x){ return x.pid===pid; });
+  var bud = (DATA.budgets||[]).find(function(b){ return b.pid===pid; });
+  var ms  = (DATA.milestones||[]).filter(function(m){ return m.pid===pid; });
+  var risks  = (DATA.risks||[]).filter(function(r){ return r.pid===pid; });
+  var issues = (DATA.issues||[]).filter(function(i){ return i.pid===pid; });
+
+  if (pdBudgetChart) { pdBudgetChart.destroy(); pdBudgetChart = null; }
+  if (pdSpiChart)    { pdSpiChart.destroy();    pdSpiChart    = null; }
+  if (pdRiskChart)   { pdRiskChart.destroy();   pdRiskChart   = null; }
+
+  var pct = p.progress || 0;
+  var rc  = pct>=70?'#10b981':pct>=40?'#f59e0b':'#ef4444';
+  var r = 52, circ = 2*Math.PI*r, dash = (pct/100)*circ;
+
+  function kBig(val, lbl, suffix, type, max) {
+    var c = kpiColor(val, type);
+    var disp = (val===null||val===undefined) ? 'N/A' : (type==='cpi'||type==='spi') ? (+val).toFixed(2) : val+suffix;
+    var barPct = (max && val!==null && val!==undefined) ? Math.min(100, Math.round((val/max)*100)) : null;
+    var bc = c==='g'?'var(--green)':c==='y'?'var(--yellow)':c==='r'?'var(--red)':'var(--muted)';
+    return '<div class="pd-kpi-big '+c+'">'
+      +'<div class="pd-kpi-big-val '+c+'">'+disp+'</div>'
+      +'<div class="pd-kpi-big-lbl">'+lbl+'</div>'
+      +(barPct!==null?'<div class="pd-kpi-big-bar"><div class="pd-kpi-big-bar-fill" style="width:'+barPct+'%;background:'+bc+'"></div></div>':'')
+      +'</div>';
+  }
+
+  var msHtml = ms.length ? ms.slice(0,8).map(function(m){
+    return '<div class="pd-ms-row">'
+      +'<div class="pd-ms-dot '+m.status+'"></div>'
+      +'<div class="pd-ms-name">'+m.name+'</div>'
+      +'<span style="font-size:11px;color:var(--muted);margin-right:6px">'+m.progress+'%</span>'
+      +'<span style="font-size:11px;color:var(--muted);width:88px;text-align:right">'+(m.actual||m.planned||'-')+'</span>'
+      +'</div>';
+  }).join('') : '<div style="color:var(--muted);font-size:12px;padding:8px 0">No milestones recorded.</div>';
+
+  // Simulated 6-month S-curve
+  var months = ['M-5','M-4','M-3','M-2','M-1','Now'];
+  function sCurve(end) {
+    var pts = [];
+    for (var i=0;i<6;i++){ var t=(i+1)/6; pts.push(Math.round(end*(3*t*t-2*t*t*t))); }
+    return pts;
+  }
+  var spiNow = k&&k.spi!=null?k.spi:null;
+  var cpiNow = k&&k.cpi!=null?k.cpi:null;
+  var spiPts = spiNow ? [0.92,0.95,0.97,0.99,1.01,1].map(function(f){ return +(spiNow*f).toFixed(2); }) : null;
+  var cpiPts = cpiNow ? [0.94,0.96,0.98,1.00,1.01,1].map(function(f){ return +(cpiNow*f).toFixed(2); }) : null;
+
+  var rCrit=risks.filter(function(r){return r.rating==='critical';}).length;
+  var rHigh=risks.filter(function(r){return r.rating==='high';}).length;
+  var rMed =risks.filter(function(r){return r.rating==='medium';}).length;
+  var rLow =risks.filter(function(r){return r.rating==='low';}).length;
+  var openIss=issues.filter(function(i){return i.status==='open';}).length;
+
+  var spentPct = bud&&bud.approved>0 ? Math.min(100,Math.round(bud.actual/bud.approved*100)) : null;
+
+  var html = '<div class="pd-layout">'
+    // ── LEFT sidebar
+    +'<div class="pd-sidebar">'
+    +'<div class="pd-info-card">'
+    +'<div class="pd-info-top '+p.status+'"></div>'
+    +'<div class="pd-info-body">'
+    +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px">'
+    +'<div class="pd-proj-name">'+p.name+'</div>'
+    +'<div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end">'+companyBadge(p.company)+statusBadge(p.status)+'</div>'
+    +'</div>'
+    +'<div class="pd-meta">📍 '+p.location+'<br>👤 PM: '+p.pm+'<br>🏢 '+p.contractor+'<br>📆 '+(p.start||'')+' → '+(p.end||'')+'</div>'
+    +(p.description?'<div class="pd-desc">'+p.description.slice(0,220)+(p.description.length>220?'…':'')+'</div>':'')
+    // big progress ring
+    +'<div style="display:flex;flex-direction:column;align-items:center;padding:18px 0 10px">'
+    +'<div style="position:relative;width:120px;height:120px">'
+    +'<svg width="120" height="120" viewBox="0 0 120 120" style="transform:rotate(-90deg)">'
+    +'<circle cx="60" cy="60" r="'+r+'" fill="none" stroke="var(--border)" stroke-width="10"/>'
+    +'<circle cx="60" cy="60" r="'+r+'" fill="none" stroke="'+rc+'" stroke-width="10" stroke-linecap="round" stroke-dasharray="'+dash.toFixed(1)+' '+circ.toFixed(1)+'"/>'
+    +'</svg>'
+    +'<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">'
+    +'<div style="font-size:26px;font-weight:900;color:'+rc+'">'+pct+'%</div>'
+    +'<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">Progress</div>'
+    +'</div></div></div>'
+    +'</div></div>'
+    // Budget summary
+    +(bud?'<div class="pd-info-card"><div class="pd-info-body">'
+    +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:12px">💰 Budget</div>'
+    +'<div style="display:flex;flex-direction:column;gap:8px">'
+    +'<div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:var(--muted)">Approved</span><span style="font-weight:700;color:var(--text)">'+fmt(bud.approved)+'</span></div>'
+    +'<div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:var(--muted)">Spent</span><span style="font-weight:700;color:var(--yellow)">'+fmt(bud.actual)+'</span></div>'
+    +'<div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:var(--muted)">Variance</span>'
+    +'<span style="font-weight:700;color:'+(bud.approved-bud.actual>=0?'var(--green)':'var(--red)')+'">'+fmt(bud.approved-bud.actual)+'</span></div>'
+    +'<div class="prog-bar" style="margin-top:4px"><div class="prog-fill" style="width:'+(spentPct||0)+'%;background:'+progGradient(spentPct||0,'on_track')+'"></div></div>'
+    +'<div style="text-align:right;font-size:11px;color:var(--muted)">'+(spentPct||0)+'% consumed</div>'
+    +'</div></div></div>':'')
+    // Milestones
+    +'<div class="pd-info-card"><div class="pd-info-body">'
+    +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:12px">📅 Milestones ('+ms.length+')</div>'
+    +msHtml
+    +'</div></div>'
+    +'</div>'
+    // ── RIGHT charts area
+    +'<div class="pd-charts">'
+    // KPI tiles
+    +(k?'<div class="pd-chart-card">'
+    +'<div class="pd-chart-title">Performance Indicators</div>'
+    +'<div class="pd-chart-sub">Current period KPIs against thresholds</div>'
+    +'<div class="pd-chart-row">'
+    +kBig(k.cpi,'Cost Perf. Index','','cpi',1.5)
+    +kBig(k.spi,'Schedule Perf. Index','','spi',1.5)
+    +kBig(k.milestoneRate,'Milestone Rate','%','milestone',100)
+    +kBig(k.auditScore,'Audit Score','%','audit',100)
+    +kBig(k.inspPassRate,'Insp. Pass Rate','%','pass',100)
+    +kBig(k.labourProd,'Labour Productivity','%','labour',100)
+    +'</div></div>':'')
+    // Trend chart
+    +'<div class="pd-chart-card">'
+    +'<div class="pd-chart-title">Progress & Performance Trend</div>'
+    +'<div class="pd-chart-sub">S-curve progress with SPI/CPI overlay — last 6 months</div>'
+    +'<canvas id="pd-spi-chart" height="170"></canvas></div>'
+    // Budget chart
+    +(bud?'<div class="pd-chart-card">'
+    +'<div class="pd-chart-title">Budget vs Actual Spend</div>'
+    +'<div class="pd-chart-sub">Approved budget against current expenditure (₦ billions)</div>'
+    +'<canvas id="pd-budget-chart" height="110"></canvas></div>':'')
+    // Risk chart
+    +'<div class="pd-chart-card">'
+    +'<div class="pd-chart-title">Risk Profile</div>'
+    +'<div class="pd-chart-sub">'+risks.length+' open risks · '+openIss+' open issues</div>'
+    +'<div style="display:grid;grid-template-columns:180px 1fr;gap:20px;align-items:center">'
+    +'<canvas id="pd-risk-chart" height="180"></canvas>'
+    +'<div style="display:flex;flex-direction:column;gap:10px">'
+    +[['Critical',rCrit,'#ef4444'],['High',rHigh,'#f59e0b'],['Medium',rMed,'#3b82f6'],['Low',rLow,'#10b981']].map(function(row){
+      return '<div style="display:flex;align-items:center;gap:10px">'
+        +'<div style="width:10px;height:10px;border-radius:2px;background:'+row[2]+';flex-shrink:0"></div>'
+        +'<span style="font-size:13px;color:var(--muted);flex:1">'+row[0]+'</span>'
+        +'<span style="font-size:16px;font-weight:800;color:var(--text)">'+row[1]+'</span>'
+        +'</div>';
+    }).join('')
+    +'<div style="border-top:1px solid var(--border);padding-top:10px;display:flex;justify-content:space-between;align-items:center">'
+    +'<span style="font-size:12px;color:var(--muted)">Open Issues</span>'
+    +'<span style="font-size:18px;font-weight:800;color:var(--text)">'+openIss+'</span></div>'
+    +'</div></div></div>'
+    +'</div></div>'; // close pd-charts + pd-layout
+
+  el.innerHTML = html;
+
+  // ── Render charts ────────────────────────────────────────
+  setTimeout(function(){
+    var cc = chartColors();
+    // Trend (line)
+    var spiCtx = document.getElementById('pd-spi-chart');
+    if (spiCtx) {
+      var datasets = [{
+        label:'Progress %', data: sCurve(pct),
+        borderColor:'#6366f1', backgroundColor:'rgba(99,102,241,.13)',
+        tension:.4, fill:true, yAxisID:'y1', borderWidth:2.5, pointRadius:3
+      }];
+      if (spiPts) datasets.push({ label:'SPI', data:spiPts, borderColor:'#10b981', backgroundColor:'transparent', tension:.4, fill:false, yAxisID:'y2', borderWidth:2, pointRadius:3 });
+      if (cpiPts) datasets.push({ label:'CPI', data:cpiPts, borderColor:'#f59e0b', backgroundColor:'transparent', tension:.4, fill:false, yAxisID:'y2', borderWidth:2, pointRadius:3, borderDash:[4,3] });
+      pdSpiChart = new Chart(spiCtx, {
+        type:'line', data:{ labels:months, datasets:datasets },
+        options:{
+          animation:{duration:800,easing:'easeOutQuart'},
+          plugins:{ legend:{labels:{color:cc.text,font:{size:11},usePointStyle:true,pointStyle:'circle'}},
+            tooltip:{backgroundColor:cc.card,borderColor:cc.border,borderWidth:1,titleColor:cc.text,bodyColor:cc.muted,padding:10} },
+          scales:{
+            x:{ ticks:{color:cc.muted,font:{size:11}}, grid:{color:cc.border,lineWidth:.5}, border:{color:cc.border} },
+            y1:{ type:'linear',position:'left',min:0,max:100,
+              ticks:{color:cc.muted,font:{size:11},callback:function(v){return v+'%'}}, grid:{color:cc.border,lineWidth:.5}, border:{color:cc.border} },
+            y2:{ type:'linear',position:'right',min:0.5,max:1.5,
+              ticks:{color:cc.muted,font:{size:11},callback:function(v){return v.toFixed(1)}}, grid:{display:false}, border:{color:cc.border} }
+          }
+        }
+      });
+    }
+    // Budget (horizontal bar)
+    var budCtx = document.getElementById('pd-budget-chart');
+    if (budCtx && bud) {
+      var ctx2d = budCtx.getContext('2d');
+      var gA = ctx2d.createLinearGradient(0,0,400,0); gA.addColorStop(0,'rgba(37,99,235,.7)'); gA.addColorStop(1,'rgba(37,99,235,.1)');
+      var gS = ctx2d.createLinearGradient(0,0,400,0); gS.addColorStop(0,'rgba(245,158,11,.8)'); gS.addColorStop(1,'rgba(245,158,11,.1)');
+      pdBudgetChart = new Chart(budCtx, {
+        type:'bar', data:{ labels:[p.name],
+          datasets:[
+            {label:'Approved',data:[+(bud.approved/1e9).toFixed(2)],backgroundColor:gA,borderColor:'#2563eb',borderWidth:2,borderRadius:6,borderSkipped:false},
+            {label:'Actual Spent',data:[+(bud.actual/1e9).toFixed(2)],backgroundColor:gS,borderColor:'#f59e0b',borderWidth:2,borderRadius:6,borderSkipped:false}
+          ]},
+        options:{
+          indexAxis:'y', animation:{duration:800,easing:'easeOutQuart'},
+          plugins:{ legend:{labels:{color:cc.text,font:{size:11},usePointStyle:true,pointStyle:'circle'}},
+            tooltip:{backgroundColor:cc.card,borderColor:cc.border,borderWidth:1,titleColor:cc.text,bodyColor:cc.muted,
+              callbacks:{label:function(c){return ' ₦'+c.raw+'bn';}}} },
+          scales:{
+            x:{ticks:{color:cc.muted,font:{size:11},callback:function(v){return '₦'+v+'bn'}},grid:{color:cc.border,lineWidth:.5},border:{color:cc.border}},
+            y:{ticks:{color:cc.muted,font:{size:11}},grid:{display:false},border:{color:cc.border}}
+          }
+        }
+      });
+    }
+    // Risk (doughnut)
+    var rCtx = document.getElementById('pd-risk-chart');
+    if (rCtx) {
+      var total = rCrit+rHigh+rMed+rLow;
+      pdRiskChart = new Chart(rCtx, {
+        type:'doughnut',
+        data:{ labels:['Critical','High','Medium','Low'],
+          datasets:[{data:[rCrit||0.001,rHigh||0.001,rMed||0.001,rLow||0.001],
+            backgroundColor:['#ef4444','#f59e0b','#3b82f6','#10b981'],
+            borderWidth:3,borderColor:cc.card,hoverOffset:6,borderRadius:3}] },
+        options:{
+          cutout:'68%', animation:{animateRotate:true,animateScale:true,duration:800},
+          plugins:{ legend:{display:false},
+            tooltip:{backgroundColor:cc.card,borderColor:cc.border,borderWidth:1,titleColor:cc.text,bodyColor:cc.muted,
+              callbacks:{label:function(c){var v=c.raw<1?0:c.raw;return ' '+c.label+': '+v;}}} }
+        }
+      });
+    }
+  }, 50);
+}
+
 /* ── Project KPI Drawer ── */
 function openProjectKPI(pid) {
   var p = (DATA.projects||[]).find(function(x){return x.id===pid;});
@@ -1956,7 +2526,7 @@ function openProjectKPI(pid) {
 
   // Footer buttons
   document.getElementById('pkdEditBtn').onclick = function(){ closeProjectKPI(); showProjectForm(pid); };
-  document.getElementById('pkdNavBtn').onclick  = function(){ closeProjectKPI(); drillProject(pid); };
+  document.getElementById('pkdNavBtn').onclick  = function(){ openProjectDetail(pid); };
 
   // Build body
   var body = '';
