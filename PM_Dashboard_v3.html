@@ -1674,8 +1674,8 @@ function renderDashboard() {
   const statusColors = ['#16a34a','#d97706','#dc2626','#7c3aed','#94a3b8'];
 
   if (statusChart) statusChart.destroy();
-  statusChart = const cc = chartColors();
-  new Chart(document.getElementById('statusChart'), {
+  const cc = chartColors();
+  statusChart = new Chart(document.getElementById('statusChart'), {
     type:'doughnut',
     data:{
       labels: statusLabels.map(capitalize),
