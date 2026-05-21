@@ -402,6 +402,23 @@ tbody tr{transition:background .12s ease}
 /* Topbar */
 .topbar{animation:fadeIn .4s ease both}
 /* ── END MOTION ──────────────────────────────────────────────── */
+
+/* Nav sub-menu (doc categories) */
+.nav-group{}
+.nav-group-header{display:flex;align-items:center;gap:10px;padding:9px 20px;cursor:pointer;color:var(--muted);transition:all .15s;border-left:3px solid transparent;font-size:13px;font-weight:500;margin:1px 0;border-radius:0 8px 8px 0;margin-right:8px;justify-content:space-between}
+.nav-group-header:hover{background:rgba(99,102,241,.12);color:var(--text-2)}
+.nav-group-header.active{background:rgba(99,102,241,.15);color:var(--accent-2);border-left-color:var(--accent);font-weight:600}
+.nav-group-header .nav-group-left{display:flex;align-items:center;gap:10px}
+.nav-group-header .nav-chevron{font-size:10px;transition:transform .2s ease;color:var(--muted);opacity:.7}
+.nav-group.open .nav-chevron{transform:rotate(90deg)}
+.nav-submenu{display:none;padding:2px 0 6px 0;overflow:hidden}
+.nav-group.open .nav-submenu{display:block;animation:fadeSlideUp .2s ease both}
+.nav-subitem{display:flex;align-items:center;gap:8px;padding:6px 20px 6px 38px;cursor:pointer;color:var(--muted);font-size:12px;font-weight:500;transition:all .15s;border-left:3px solid transparent;margin-right:8px;border-radius:0 8px 8px 0;white-space:nowrap}
+.nav-subitem:hover{background:rgba(99,102,241,.09);color:var(--text-2)}
+.nav-subitem.active{background:rgba(99,102,241,.12);color:var(--accent-2);border-left-color:var(--accent);font-weight:600}
+.nav-subitem .sub-count{margin-left:auto;background:var(--border);color:var(--muted);border-radius:10px;font-size:10px;padding:1px 6px}
+.nav-subitem.active .sub-count{background:rgba(99,102,241,.3);color:var(--accent-2)}
+
 /* PRINT */
 @media print{
   /* hide all app chrome */
@@ -739,7 +756,13 @@ tbody tr{transition:background .12s ease}
     <div class="nav-item" onclick="nav('meetings')" data-tip="Meeting log - minutes, attendees, decisions &amp; action item tracking with due dates"><span class="nav-icon"><i data-lucide="notebook-pen"></i></span>Meetings &amp; Minutes</div>
     <div class="nav-item" onclick="nav('reports')" data-tip="Monthly progress reports - narrative, S-curve performance &amp; KPI snapshot"><span class="nav-icon"><i data-lucide="file-bar-chart-2"></i></span>Monthly Reports</div>
     <div class="nav-section">Documents</div>
-    <div class="nav-item" onclick="nav('documents')" data-tip="Document register - drawings, specs, submittals, correspondence &amp; contract documents"><span class="nav-icon"><i data-lucide="library"></i></span>Document Register</div>
+    <div class="nav-group" id="doc-nav-group">
+      <div class="nav-group-header" id="doc-nav-header" onclick="toggleDocNav()" data-tip="Document register - drawings, specs, submittals, correspondence &amp; contract documents">
+        <span class="nav-group-left"><span class="nav-icon"><i data-lucide="library"></i></span>Document Register</span>
+        <span class="nav-chevron">&#9654;</span>
+      </div>
+      <div class="nav-submenu" id="doc-nav-submenu"></div>
+    </div>
     <div class="nav-section">Intelligence</div>
     <div class="nav-item" onclick="nav('copilot')" data-tip="AI Co-Pilot - ask project questions, get smart analysis &amp; decision recommendations"><span class="nav-icon"><i data-lucide="cpu"></i></span>AI Co-Pilot</div>
     <div class="nav-section">Contracts &amp; Claims</div>
@@ -890,7 +913,6 @@ tbody tr{transition:background .12s ease}
         <button class="btn btn-primary" onclick="showDocForm()">+ Register Document</button>
       </div>
       <div id="doc-stat-strip" class="doc-stat-strip"></div>
-      <div class="doc-cat-tabs" id="doc-cat-tabs"></div>
       <div class="doc-filters">
         <select id="doc-proj-filter" onchange="renderDocuments()">
           <option value="">All Projects</option>
@@ -1441,6 +1463,12 @@ function nav(page) {
   const idx = ['dashboard','projects','schedule','budget','risks','issues','visits','meetings','reports','documents','copilot','procurement','rfi','payment','handover','wizard'].indexOf(page);
   if (idx >= 0) navItems[idx].classList.add('active');
   renderPage();
+  // auto-open doc nav group when on documents page
+  var docGroup = document.getElementById('doc-nav-group');
+  if (docGroup) docGroup.classList.toggle('open', page === 'documents');
+  // mark doc nav header active
+  var docHeader = document.getElementById('doc-nav-header');
+  if (docHeader) docHeader.classList.toggle('active', page === 'documents');
 }
 
 function renderPage() {
@@ -2612,6 +2640,7 @@ function filteredDocs() {
 }
 
 function renderDocuments() {
+  buildDocNavSubmenu();
   // populate project filter in doc page
   const sel = document.getElementById('doc-proj-filter');
   if (sel) {
@@ -2676,7 +2705,36 @@ function renderDocuments() {
 
 function setDocCat(cat) {
   activeDocCat = cat;
+  // update nav sub-item active states
+  document.querySelectorAll('.nav-subitem').forEach(function(el){
+    el.classList.toggle('active', el.dataset.cat === cat);
+  });
   renderDocuments();
+}
+
+function toggleDocNav() {
+  var group = document.getElementById('doc-nav-group');
+  var isOpen = group.classList.contains('open');
+  if (!isOpen) {
+    // navigate to documents page and open submenu
+    group.classList.add('open');
+    nav('documents');
+  } else {
+    group.classList.remove('open');
+  }
+}
+
+function buildDocNavSubmenu() {
+  var docs = DATA.documents || [];
+  var submenu = document.getElementById('doc-nav-submenu');
+  if (!submenu) return;
+  submenu.innerHTML = DOC_CATS.map(function(c) {
+    var cnt = c.key === 'All' ? docs.length : docs.filter(function(d){ return d.cat === c.key; }).length;
+    return '<div class="nav-subitem' + (activeDocCat === c.key ? ' active' : '') + '" data-cat="' + c.key + '" onclick="setDocCat(\'' + c.key + '\')">'
+      + c.icon + ' ' + c.label
+      + '<span class="sub-count">' + cnt + '</span>'
+      + '</div>';
+  }).join('');
 }
 
 function showDocForm(editId) {
