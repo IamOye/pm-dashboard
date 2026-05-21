@@ -101,7 +101,7 @@ body{display:flex;min-height:100vh;background:var(--bg);color:var(--text);font-f
 
 /* PROJECT CARDS */
 .proj-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:18px}
-.proj-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;transition:transform .15s,box-shadow .15s;box-shadow:var(--shadow)}
+.proj-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;cursor:pointer;transition:transform .15s,box-shadow .15s;box-shadow:var(--shadow)}
 .proj-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
 .proj-card-top{height:4px}
 .proj-card-top.on_track{background:var(--on-track)}
@@ -114,8 +114,8 @@ body{display:flex;min-height:100vh;background:var(--bg);color:var(--text);font-f
 .proj-card-name{font-size:14px;font-weight:700;flex:1;color:var(--text);line-height:1.3}
 .proj-card-badges{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
 .proj-card-meta{font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.7}
-.prog-bar{background:rgba(255,255,255,.08);border-radius:4px;height:6px;margin-bottom:5px;overflow:hidden}
-.prog-fill{height:100%;border-radius:4px;transition:width .3s}
+.prog-bar{background:rgba(255,255,255,.08);border-radius:6px;height:8px;margin-bottom:5px;overflow:hidden;box-shadow:inset 0 1px 3px rgba(0,0,0,.15)}
+.prog-fill{height:100%;border-radius:4px;transition:width .3s;animation:growWidth .85s cubic-bezier(.22,1,.36,1) both}
 .prog-label{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);font-weight:600}
 .kpi-strip{border-top:1px solid var(--border);margin-top:12px;padding-top:10px;display:flex;flex-direction:column;gap:5px}
 .kpi-strip-row{display:flex;align-items:center;gap:5px}
@@ -204,7 +204,7 @@ tr:hover td{background:rgba(99,102,241,.07)}
 .empty{text-align:center;color:var(--muted);padding:48px;font-size:13px}
 .action-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
 .page{display:none}
-.page.active{display:block}
+.page.active{display:block;animation:fadeSlideUp .32s cubic-bezier(.22,1,.36,1) both}
 .tag{padding:3px 8px;border-radius:6px;font-size:11px;background:var(--bg);color:var(--muted);border:1px solid var(--border);font-weight:600;display:inline-block}
 
 /* AI CO-PILOT */
@@ -333,6 +333,75 @@ tr:hover td{background:rgba(99,102,241,.07)}
 .b-void{background:#fee2e2;color:#991b1b}
 .doc-icon{font-size:18px;line-height:1}
 
+
+/* ── MOTION & ANIMATIONS ─────────────────────────────────────── */
+@keyframes fadeSlideUp{
+  from{opacity:0;transform:translateY(18px) scale(.98)}
+  to  {opacity:1;transform:translateY(0)    scale(1)}
+}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes growWidth{from{width:0}}
+@keyframes countUp{
+  from{opacity:0;transform:scale(.82) translateY(6px)}
+  to  {opacity:1;transform:scale(1)   translateY(0)}
+}
+@keyframes pulseRing{
+  0%  {box-shadow:0 0 0 0 var(--ring-color,rgba(99,102,241,.4))}
+  70% {box-shadow:0 0 0 7px transparent}
+  100%{box-shadow:0 0 0 0 transparent}
+}
+
+/* Page entrance */
+.page.active{animation:fadeSlideUp .32s cubic-bezier(.22,1,.36,1) both!important}
+
+/* Project cards */
+.proj-card{
+  transition:transform .22s cubic-bezier(.22,1,.36,1),
+             box-shadow .22s cubic-bezier(.22,1,.36,1),
+             border-color .22s ease
+}
+.proj-card:hover{
+  transform:translateY(-5px) scale(1.008);
+  box-shadow:0 16px 48px rgba(0,0,0,.22);
+  border-color:var(--accent)
+}
+
+/* Stat / metric cards */
+.stat-card,.metric-card{transition:transform .2s ease,box-shadow .2s ease}
+.stat-card:hover,.metric-card:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(0,0,0,.16)}
+.stat-val{animation:countUp .55s cubic-bezier(.22,1,.36,1) both}
+
+/* KPI chips */
+.kpi-chip{transition:transform .15s ease,opacity .15s ease,box-shadow .15s ease}
+.kpi-chip:hover{transform:scale(1.07);box-shadow:0 2px 8px rgba(0,0,0,.15)}
+
+/* Buttons */
+.btn{transition:transform .15s ease,box-shadow .15s ease,background .15s ease,color .15s ease}
+.btn:hover{transform:translateY(-2px);box-shadow:0 5px 16px rgba(0,0,0,.18)}
+.btn:active{transform:translateY(0);box-shadow:none}
+
+/* Nav items */
+.nav-item{transition:background .15s ease,color .15s ease,transform .15s ease}
+.nav-item:hover:not(.active){transform:translateX(3px)}
+.nav-item.active{--ring-color:rgba(99,102,241,.3);animation:pulseRing 1.6s ease-in-out 1}
+
+/* Table rows */
+tbody tr{transition:background .12s ease}
+
+/* Badges */
+.badge,.tag{transition:all .15s ease}
+.tag:hover{transform:scale(1.05)}
+
+/* Chart containers */
+.chart-wrap,canvas{animation:fadeIn .55s ease both}
+
+/* Cards */
+.card{transition:box-shadow .2s ease}
+.card:hover{box-shadow:0 6px 24px rgba(0,0,0,.12)}
+
+/* Topbar */
+.topbar{animation:fadeIn .4s ease both}
+/* ── END MOTION ──────────────────────────────────────────────── */
 /* PRINT */
 @media print{
   /* hide all app chrome */
@@ -658,29 +727,29 @@ tr:hover td{background:rgba(99,102,241,.07)}
       <div class="sctx-all">No filter active</div>
     </div>
     <div class="nav-section">Overview</div>
-    <div class="nav-item active" onclick="nav('dashboard')" data-tip="Portfolio overview - KPIs, progress rings, risk radar &amp; cost summary across all active projects"><span class="nav-icon"><i data-lucide="layout-dashboard"></i></span>Portfolio Dashboard</div>
-    <div class="nav-item" onclick="nav('projects')" data-tip="Project cards - open any project for full status, milestones, programme &amp; spend detail"><span class="nav-icon"><i data-lucide="building-2"></i></span>Projects</div>
+    <div class="nav-item active" onclick="nav('dashboard')" data-tip="Portfolio overview - KPIs, progress rings, risk radar &amp; cost summary across all active projects"><span class="nav-icon"><i data-lucide="gauge"></i></span>Portfolio Dashboard</div>
+    <div class="nav-item" onclick="nav('projects')" data-tip="Project cards - open any project for full status, milestones, programme &amp; spend detail"><span class="nav-icon"><i data-lucide="landmark"></i></span>Projects</div>
     <div class="nav-section">Construction</div>
-    <div class="nav-item" onclick="nav('schedule')" data-tip="Gantt-style timeline - planned vs actual dates, critical path &amp; milestone tracking"><span class="nav-icon"><i data-lucide="calendar-days"></i></span>Schedule &amp; Milestones</div>
-    <div class="nav-item" onclick="nav('budget')" data-tip="Contract values, certified spend, cost-to-complete &amp; budget variance analysis"><span class="nav-icon"><i data-lucide="wallet"></i></span>Budget &amp; Costs</div>
-    <div class="nav-item" onclick="nav('risks')" data-tip="Risk register - log hazards, rate probability &amp; impact, assign mitigation owners"><span class="nav-icon"><i data-lucide="shield-alert"></i></span>Risk Register</div>
-    <div class="nav-item" onclick="nav('issues')" data-tip="Issues log - track open defects, site blockers &amp; punch items through to resolution"><span class="nav-icon"><i data-lucide="wrench"></i></span>Issues Register</div>
+    <div class="nav-item" onclick="nav('schedule')" data-tip="Gantt-style timeline - planned vs actual dates, critical path &amp; milestone tracking"><span class="nav-icon"><i data-lucide="gantt-chart"></i></span>Schedule &amp; Milestones</div>
+    <div class="nav-item" onclick="nav('budget')" data-tip="Contract values, certified spend, cost-to-complete &amp; budget variance analysis"><span class="nav-icon"><i data-lucide="circle-dollar-sign"></i></span>Budget &amp; Costs</div>
+    <div class="nav-item" onclick="nav('risks')" data-tip="Risk register - log hazards, rate probability &amp; impact, assign mitigation owners"><span class="nav-icon"><i data-lucide="shield-half"></i></span>Risk Register</div>
+    <div class="nav-item" onclick="nav('issues')" data-tip="Issues log - track open defects, site blockers &amp; punch items through to resolution"><span class="nav-icon"><i data-lucide="triangle-alert"></i></span>Issues Register</div>
     <div class="nav-section">Field</div>
-    <div class="nav-item" onclick="nav('visits')" data-tip="Site visit diary - log inspection notes, observations &amp; follow-up actions per visit"><span class="nav-icon"><i data-lucide="map-pin"></i></span>Site Visits</div>
-    <div class="nav-item" onclick="nav('meetings')" data-tip="Meeting log - minutes, attendees, decisions &amp; action item tracking with due dates"><span class="nav-icon"><i data-lucide="message-square"></i></span>Meetings &amp; Minutes</div>
-    <div class="nav-item" onclick="nav('reports')" data-tip="Monthly progress reports - narrative, S-curve performance &amp; KPI snapshot"><span class="nav-icon"><i data-lucide="file-text"></i></span>Monthly Reports</div>
+    <div class="nav-item" onclick="nav('visits')" data-tip="Site visit diary - log inspection notes, observations &amp; follow-up actions per visit"><span class="nav-icon"><i data-lucide="compass"></i></span>Site Visits</div>
+    <div class="nav-item" onclick="nav('meetings')" data-tip="Meeting log - minutes, attendees, decisions &amp; action item tracking with due dates"><span class="nav-icon"><i data-lucide="notebook-pen"></i></span>Meetings &amp; Minutes</div>
+    <div class="nav-item" onclick="nav('reports')" data-tip="Monthly progress reports - narrative, S-curve performance &amp; KPI snapshot"><span class="nav-icon"><i data-lucide="file-bar-chart-2"></i></span>Monthly Reports</div>
     <div class="nav-section">Documents</div>
-    <div class="nav-item" onclick="nav('documents')" data-tip="Document register - drawings, specs, submittals, correspondence &amp; contract documents"><span class="nav-icon"><i data-lucide="folder-open"></i></span>Document Register</div>
+    <div class="nav-item" onclick="nav('documents')" data-tip="Document register - drawings, specs, submittals, correspondence &amp; contract documents"><span class="nav-icon"><i data-lucide="library"></i></span>Document Register</div>
     <div class="nav-section">Intelligence</div>
-    <div class="nav-item" onclick="nav('copilot')" data-tip="AI Co-Pilot - ask project questions, get smart analysis &amp; decision recommendations"><span class="nav-icon"><i data-lucide="bot"></i></span>AI Co-Pilot</div>
+    <div class="nav-item" onclick="nav('copilot')" data-tip="AI Co-Pilot - ask project questions, get smart analysis &amp; decision recommendations"><span class="nav-icon"><i data-lucide="cpu"></i></span>AI Co-Pilot</div>
     <div class="nav-section">Contracts &amp; Claims</div>
-    <div class="nav-item" onclick="nav('procurement')" data-tip="Procurement tracker - purchase orders, supplier status &amp; delivery pipeline management"><span class="nav-icon"><i data-lucide="shopping-cart"></i></span>Procurement</div>
-    <div class="nav-item" onclick="nav('rfi')" data-tip="RFI Tracker - log Requests for Information, track responses &amp; turnaround times"><span class="nav-icon"><i data-lucide="help-circle"></i></span>RFI Tracker</div>
-    <div class="nav-item" onclick="nav('payment')" data-tip="Payment certificates - interim &amp; final valuations, certified amounts &amp; payment status"><span class="nav-icon"><i data-lucide="credit-card"></i></span>Payment Certs</div>
+    <div class="nav-item" onclick="nav('procurement')" data-tip="Procurement tracker - purchase orders, supplier status &amp; delivery pipeline management"><span class="nav-icon"><i data-lucide="package-search"></i></span>Procurement</div>
+    <div class="nav-item" onclick="nav('rfi')" data-tip="RFI Tracker - log Requests for Information, track responses &amp; turnaround times"><span class="nav-icon"><i data-lucide="message-circle-question"></i></span>RFI Tracker</div>
+    <div class="nav-item" onclick="nav('payment')" data-tip="Payment certificates - interim &amp; final valuations, certified amounts &amp; payment status"><span class="nav-icon"><i data-lucide="banknote"></i></span>Payment Certs</div>
     <div class="nav-section">Closeout</div>
-    <div class="nav-item" onclick="nav('handover')" data-tip="Handover &amp; punchlist - practical completion, snag list management &amp; close-out certificates"><span class="nav-icon"><i data-lucide="flag"></i></span>Handover &amp; Punchlist</div>
-    <div class="nav-item" onclick="nav('wizard')" data-tip="Document Wizard - generate professional PM, HSE, QA, Finance &amp; contract documents from smart templates"><span class="nav-icon"><i data-lucide="wand-2"></i></span>Document Wizard</div>
-    <div class="nav-item" onclick="nav('boq')" data-tip="Bill of Quantities Wizard - build itemised BoQ for any construction project; browse 130+ items across 15 categories, fetch live Nigerian market prices by city, and export a print-ready PDF"><span class="nav-icon"><i data-lucide="receipt-text"></i></span>BoQ Wizard</div>
+    <div class="nav-item" onclick="nav('handover')" data-tip="Handover &amp; punchlist - practical completion, snag list management &amp; close-out certificates"><span class="nav-icon"><i data-lucide="flag-triangle-right"></i></span>Handover &amp; Punchlist</div>
+    <div class="nav-item" onclick="nav('wizard')" data-tip="Document Wizard - generate professional PM, HSE, QA, Finance &amp; contract documents from smart templates"><span class="nav-icon"><i data-lucide="wand-sparkles"></i></span>Document Wizard</div>
+    <div class="nav-item" onclick="nav('boq')" data-tip="Bill of Quantities Wizard - build itemised BoQ for any construction project; browse 130+ items across 15 categories, fetch live Nigerian market prices by city, and export a print-ready PDF"><span class="nav-icon"><i data-lucide="calculator"></i></span>BoQ Wizard</div>
   </div>
 </nav>
 
@@ -1448,9 +1517,29 @@ function companyBadge(company) {
   return `<span class="badge">${company}</span>`;
 }
 
-function progColor(status) {
-  const m = {on_track:'var(--green)', at_risk:'var(--yellow)', delayed:'var(--red)', completed:'var(--purple)', not_started:'var(--gray)'};
-  return m[status] || '#94a3b8';
+function progColor(pct, status) {
+  // Completed override
+  if (status === 'completed' || pct >= 100) return 'var(--accent)';
+  if (status === 'not_started' || pct === 0)  return 'var(--muted)';
+  // RAG thresholds on actual % value
+  if (pct >= 70) return 'var(--green)';
+  if (pct >= 40) return 'var(--yellow)';
+  return 'var(--red)';
+}
+
+function progGradient(pct, status) {
+  // Returns inline CSS for a RAG gradient progress bar
+  const base = progColor(pct, status);
+  // light variant for gradient endpoint
+  const light = {
+    'var(--green)':  'rgba(16,185,129,.25)',
+    'var(--yellow)': 'rgba(245,158,11,.25)',
+    'var(--red)':    'rgba(239,68,68,.25)',
+    'var(--accent)': 'rgba(99,102,241,.25)',
+    'var(--muted)':  'rgba(100,116,139,.15)',
+  };
+  const end = light[base] || 'rgba(100,116,139,.15)';
+  return 'linear-gradient(90deg,' + base + ' 0%,' + end + ' 100%)';
 }
 
 function gv(id) {
@@ -1580,28 +1669,136 @@ function renderDashboard() {
     type:'doughnut',
     data:{
       labels: statusLabels.map(capitalize),
-      datasets:[{data: statusLabels.map(s=>statusCounts[s]||0), backgroundColor:statusColors, borderWidth:2, borderColor:'#ffffff'}]
+      datasets:[{
+        data: statusLabels.map(s=>statusCounts[s]||0),
+        backgroundColor: statusColors,
+        borderWidth: 3,
+        borderColor: 'var(--card)',
+        hoverBorderColor: '#ffffff',
+        hoverOffset: 8,
+        borderRadius: 4
+      }]
     },
-    options:{plugins:{legend:{position:'right',labels:{color:'#64748b',font:{size:11}}}},cutout:'68%'}
+    options:{
+      cutout:'72%',
+      animation:{animateRotate:true,animateScale:true,duration:900,easing:'easeOutQuart'},
+      hover:{animationDuration:200},
+      plugins:{
+        legend:{
+          position:'right',
+          labels:{
+            color:'var(--text)',
+            font:{size:11,weight:'600'},
+            padding:14,
+            usePointStyle:true,
+            pointStyle:'circle'
+          }
+        },
+        tooltip:{
+          backgroundColor:'var(--card)',
+          borderColor:'var(--border)',
+          borderWidth:1,
+          titleColor:'var(--text)',
+          bodyColor:'var(--muted)',
+          titleFont:{size:12,weight:'700'},
+          bodyFont:{size:11},
+          padding:12,
+          cornerRadius:8,
+          displayColors:true,
+          boxWidth:10,
+          boxHeight:10,
+          callbacks:{
+            label:function(ctx){
+              const total=ctx.dataset.data.reduce((a,b)=>a+b,0);
+              const pct=total?Math.round(ctx.parsed/total*100):0;
+              return ' '+ctx.label+': '+ctx.parsed+' ('+pct+'%)';
+            }
+          }
+        }
+      }
+    }
   });
 
   // Budget chart
   const budProjects = projects.filter(p => DATA.budgets.find(b=>b.pid===p.id));
   if (budgetChart) budgetChart.destroy();
-  budgetChart = new Chart(document.getElementById('budgetChart'), {
+  const bCtx = document.getElementById('budgetChart').getContext('2d');
+  const gradApproved = bCtx.createLinearGradient(0,0,0,240);
+  gradApproved.addColorStop(0,'rgba(37,99,235,.55)');
+  gradApproved.addColorStop(1,'rgba(37,99,235,.06)');
+  const gradActual = bCtx.createLinearGradient(0,0,0,240);
+  gradActual.addColorStop(0,'rgba(245,158,11,.65)');
+  gradActual.addColorStop(1,'rgba(245,158,11,.06)');
+  budgetChart = new Chart(bCtx, {
     type:'bar',
     data:{
       labels: budProjects.map(p=>p.name.split(' ').slice(0,2).join(' ')),
       datasets:[
-        {label:'Approved',    data: budProjects.map(p=>{const b=DATA.budgets.find(x=>x.pid===p.id);return b?+(b.approved/1e9).toFixed(2):0;}), backgroundColor:'rgba(37,99,235,.15)', borderColor:'#2563eb', borderWidth:1.5},
-        {label:'Actual Spend',data: budProjects.map(p=>{const b=DATA.budgets.find(x=>x.pid===p.id);return b?+(b.actual/1e9).toFixed(2):0;}),    backgroundColor:'rgba(217,119,6,.2)', borderColor:'#d97706', borderWidth:1.5}
+        {
+          label:'Approved Budget',
+          data: budProjects.map(p=>{const b=DATA.budgets.find(x=>x.pid===p.id);return b?+(b.approved/1e9).toFixed(2):0;}),
+          backgroundColor: gradApproved,
+          borderColor:'#2563eb',
+          borderWidth:2,
+          borderRadius:6,
+          borderSkipped:false,
+          hoverBackgroundColor:'rgba(37,99,235,.75)'
+        },
+        {
+          label:'Actual Spend',
+          data: budProjects.map(p=>{const b=DATA.budgets.find(x=>x.pid===p.id);return b?+(b.actual/1e9).toFixed(2):0;}),
+          backgroundColor: gradActual,
+          borderColor:'#f59e0b',
+          borderWidth:2,
+          borderRadius:6,
+          borderSkipped:false,
+          hoverBackgroundColor:'rgba(245,158,11,.75)'
+        }
       ]
     },
     options:{
-      plugins:{legend:{labels:{color:'#64748b',font:{size:11}}}},
+      animation:{
+        duration:900,
+        easing:'easeOutQuart',
+        delay:(ctx)=>ctx.dataIndex*80
+      },
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{
+          labels:{
+            color:'var(--text)',
+            font:{size:11,weight:'600'},
+            padding:16,
+            usePointStyle:true,
+            pointStyle:'rectRounded'
+          }
+        },
+        tooltip:{
+          backgroundColor:'var(--card)',
+          borderColor:'var(--border)',
+          borderWidth:1,
+          titleColor:'var(--text)',
+          bodyColor:'var(--muted)',
+          titleFont:{size:12,weight:'700'},
+          bodyFont:{size:11},
+          padding:12,
+          cornerRadius:8,
+          callbacks:{label:function(ctx){return ' '+ctx.dataset.label+': ₦'+ctx.parsed.y+'bn';}}
+        }
+      },
       scales:{
-        x:{ticks:{color:'#64748b',font:{size:10}},grid:{color:'#e2e8f0'},border:{color:'#e2e8f0'}},
-        y:{ticks:{color:'#64748b',font:{size:10},callback:v=>v+'bn'},grid:{color:'#e2e8f0'},border:{color:'#e2e8f0'}}
+        x:{
+          ticks:{color:'var(--muted)',font:{size:10,weight:'600'}},
+          grid:{color:'var(--border)',lineWidth:.6},
+          border:{color:'var(--border)'},
+          stacked:false
+        },
+        y:{
+          ticks:{color:'var(--muted)',font:{size:10,weight:'600'},callback:v=>'₦'+v+'bn'},
+          grid:{color:'var(--border)',lineWidth:.6},
+          border:{color:'var(--border)'},
+          beginAtZero:true
+        }
       }
     }
   });
@@ -1658,7 +1855,7 @@ function projCard(p) {
         👤 PM: ${p.pm}<br>
         🏢 ${p.contractor}
       </div>
-      <div class="prog-bar"><div class="prog-fill" style="width:${p.progress}%;background:${progColor(p.status)}"></div></div>
+      <div class="prog-bar"><div class="prog-fill" style="width:${p.progress}%;background:${progGradient(p.progress,p.status)};box-shadow:0 1px 6px ${progColor(p.progress,p.status)}55"></div></div>
       <div class="prog-label"><span>Progress</span><span>${p.progress}%</span></div>
       ${kpiStripHtml(p.id)}
     </div>
@@ -1691,7 +1888,7 @@ function renderProjects() {
             📆 ${p.start} → ${p.end}
           </div>
           <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6">${p.description}</div>
-          <div class="prog-bar"><div class="prog-fill" style="width:${p.progress}%;background:${progColor(p.status)}"></div></div>
+          <div class="prog-bar"><div class="prog-fill" style="width:${p.progress}%;background:${progGradient(p.progress,p.status)};box-shadow:0 1px 6px ${progColor(p.progress,p.status)}55"></div></div>
           <div class="prog-label"><span>Progress</span><span>${p.progress}%</span></div>
           <div style="margin-top:12px;display:flex;gap:8px">
             <button class="btn btn-ghost" style="font-size:12px;padding:5px 10px" onclick="showProjectForm('${p.id}')">✏️ Edit</button>
@@ -2357,12 +2554,18 @@ function deleteMeeting(id) {
    DOCUMENT REGISTER
 ═══════════════════════════════════════════════ */
 const DOC_CATS = [
-  {key:'All',     label:'All Documents', icon:'📁'},
-  {key:'PM',      label:'Project Management', icon:'📋'},
-  {key:'Drawings',label:'Drawings', icon:'📐'},
-  {key:'QAQC',   label:'QA / QC', icon:'✅'},
-  {key:'HSE',    label:'HSE', icon:'🦺'},
-  {key:'Minutes',label:'Meeting Minutes', icon:'🗣️'},
+  {key:'All',         label:'All Documents',          icon:'📁'},
+  {key:'Legal',       label:'Legal & Contractual',    icon:'⚖️'},
+  {key:'Regulatory',  label:'Regulatory & Compliance',icon:'🏛️'},
+  {key:'Design',      label:'Design & Technical',     icon:'📐'},
+  {key:'DocControl',  label:'Document Control',       icon:'🗂️'},
+  {key:'PM',          label:'Project Management',     icon:'📋'},
+  {key:'Commercial',  label:'Procurement & Commercial',icon:'💼'},
+  {key:'HSE',         label:'Health, Safety & Environment', icon:'🦺'},
+  {key:'QA',          label:'Quality Assurance',      icon:'✅'},
+  {key:'Governance',  label:'Governance & Registers', icon:'🛡️'},
+  {key:'Closeout',    label:'Closeout & Operations',  icon:'🏁'},
+  {key:'Minutes',     label:'Minutes & Correspondence',icon:'🗣️'},
 ];
 
 const DOC_STATUS_CLASS = {
@@ -2370,7 +2573,11 @@ const DOC_STATUS_CLASS = {
   'Draft':'b-draft','Superseded':'b-superseded','FYI':'b-fyi','Void':'b-void'
 };
 const DOC_CAT_ICON = {
-  PM:'📋', Drawings:'📐', QAQC:'✅', HSE:'🦺', Minutes:'🗣️'
+  Legal:'⚖️', Regulatory:'🏛️', Design:'📐', DocControl:'🗂️',
+  PM:'📋', Commercial:'💼', HSE:'🦺', QA:'✅',
+  Governance:'🛡️', Closeout:'🏁', Minutes:'🗣️',
+  // legacy aliases
+  Drawings:'📐', QAQC:'✅'
 };
 
 let activeDocCat = 'All';
@@ -2404,13 +2611,14 @@ function renderDocuments() {
 
   // stat strip
   const docs = DATA.documents || [];
-  const cats = ['PM','Drawings','QAQC','HSE','Minutes'];
+  const statCats = ['Legal','Regulatory','Design','PM','Commercial','HSE','QA','Governance','Closeout'];
   const strip = document.getElementById('doc-stat-strip');
   if (strip) {
-    strip.innerHTML = `
-      <div class="doc-stat"><div class="ds-num">${docs.length}</div><div class="ds-lbl">Total Documents</div></div>
-      ${cats.map(c=>`<div class="doc-stat"><div class="ds-num" style="color:var(--text)">${docs.filter(d=>d.cat===c).length}</div><div class="ds-lbl">${DOC_CAT_ICON[c]||''} ${c==='QAQC'?'QA/QC':c}</div></div>`).join('')}
-    `;
+    strip.innerHTML =
+      '<div class="doc-stat"><div class="ds-num">'+docs.length+'</div><div class="ds-lbl">Total Documents</div></div>' +
+      statCats.map(function(c){
+        return '<div class="doc-stat"><div class="ds-num" style="color:var(--text)">'+docs.filter(function(d){return d.cat===c;}).length+'</div><div class="ds-lbl">'+(DOC_CAT_ICON[c]||'')+'\u00a0'+c+'</div></div>';
+      }).join('');
   }
 
   // cat tabs
@@ -2464,9 +2672,31 @@ function setDocCat(cat) {
 function showDocForm(editId) {
   const d = editId ? (DATA.documents||[]).find(x=>x.id===editId) : null;
   const projOptions = DATA.projects.map(p=>`<option value="${p.id}"${d&&d.pid===p.id?' selected':''}>${p.name}</option>`).join('');
-  const catOpts = ['PM','Drawings','QAQC','HSE','Minutes'].map(c=>`<option value="${c}"${d&&d.cat===c?' selected':''}>${c==='QAQC'?'QA/QC':c}</option>`).join('');
+  const docCatList = [
+    {k:'Legal',label:'Legal & Contractual'},
+    {k:'Regulatory',label:'Regulatory & Compliance'},
+    {k:'Design',label:'Design & Technical'},
+    {k:'DocControl',label:'Document Control'},
+    {k:'PM',label:'Project Management'},
+    {k:'Commercial',label:'Procurement & Commercial'},
+    {k:'HSE',label:'Health, Safety & Environment'},
+    {k:'QA',label:'Quality Assurance'},
+    {k:'Governance',label:'Governance & Registers'},
+    {k:'Closeout',label:'Closeout & Operations'},
+    {k:'Minutes',label:'Minutes & Correspondence'},
+  ];
+  const catOpts = docCatList.map(c=>`<option value="${c.k}"${d&&d.cat===c.k?' selected':''}>${c.label}</option>`).join('');
   const statusOpts = ['IFC','IFR','Approved','Draft','Superseded','FYI','Void'].map(s=>`<option value="${s}"${d&&d.status===s?' selected':''}>${s==='IFC'?'Issued for Construction':s==='IFR'?'Issued for Review':s==='FYI'?'For Information Only':s}</option>`).join('');
-  const discOpts = ['Architecture','Structural','MEP','Electrical','Civil','Mechanical','Project Management','Contract','Finance','Quality','HSE','Minutes'].map(s=>`<option value="${s}"${d&&d.discipline===s?' selected':''}>${s}</option>`).join('');
+  const discOpts = [
+    'Architecture','Structural Engineering','Civil Engineering',
+    'Mechanical / HVAC','Electrical','Plumbing & Drainage',
+    'Facade & Cladding','Interior Design','Acoustic Engineering',
+    'Geotechnical','Topographical Survey','BIM / Digital',
+    'Project Management','Contract & Legal','Commercial / QS',
+    'Finance','Procurement & Supply Chain','Quality / QA',
+    'Health & Safety','Environmental','Document Control',
+    'Governance & Risk','Commissioning','Minutes & Correspondence'
+  ].map(s=>`<option value="${s}"${d&&d.discipline===s?' selected':''}>${s}</option>`).join('');
 
   document.getElementById('modal-content').innerHTML = `
     <h3>${d?'✏ Edit Document':'➕ Register New Document'}</h3>
@@ -2653,7 +2883,7 @@ function renderCopilot() {
       <div class="health-score" style="color:${h.cat==='excellent'?'var(--green)':h.cat==='good'?'#22c55e':h.cat==='warning'?'var(--yellow)':'var(--red)'}">${h.score}</div>
       <div class="health-label">${h.cat.toUpperCase()} HEALTH</div>
       <div class="health-bars">
-        <div class="hb-item">Progress<div class="pb"><div class="pf" style="width:${p.progress}%;background:${progColor(p.status)}"></div></div></div>
+        <div class="hb-item">Progress<div class="pb"><div class="pf" style="width:${p.progress}%;background:${progGradient(p.progress,p.status)};box-shadow:0 1px 6px ${progColor(p.progress,p.status)}55"></div></div></div>
         <div class="hb-item">Planned<div class="pb"><div class="pf" style="width:${h.plannedPct}%;background:var(--muted)"></div></div></div>
       </div>
     </div>`;
