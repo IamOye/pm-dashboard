@@ -3227,6 +3227,7 @@ const WIZ_PHASES = [
   {id:'procurement',      label:'Procurement',                           icon:'shopping-cart', color:'#14b8a6'},
   {id:'construction',     label:'Construction',                          icon:'building-2',    color:'#22c55e'},
   {id:'post-construction',label:'Post-construction',                     icon:'flag-triangle-right', color:'#f59e0b'},
+  {id:'governance',      label:'Governance & Registers',               icon:'shield',              color:'#ec4899'},
 ];
 
 const WIZARD_DOC_TYPES = [
@@ -3270,6 +3271,124 @@ const WIZARD_DOC_TYPES = [
   {key:'handover-cert',       phase:'post-construction',cat:'PM',      lucide:'flag-triangle-right', label:'Handover Certificate',     desc:'Partial or full handover record'},
   {key:'punchlist',           phase:'post-construction',cat:'QA',      lucide:'clipboard-check',     label:'Snag / Punchlist',         desc:'Defects & rectification tracking'},
   {key:'commissioning',       phase:'post-construction',cat:'QA',      lucide:'settings-2',          label:'Commissioning Checklist',  desc:'System handover & testing'},
+
+  // ── Legal & Contractual ─────────────────────────────────────────────────
+  {key:'loi',                   phase:'conception',        cat:'Legal',      lucide:'mail',               label:'Letter of Intent',                   desc:'Pre-contract commitment letter'},
+  {key:'mou',                   phase:'conception',        cat:'Legal',      lucide:'file-text',          label:'Memorandum of Understanding',        desc:'MOU between parties'},
+  {key:'nda',                   phase:'conception',        cat:'Legal',      lucide:'lock',               label:'Non-Disclosure Agreement',           desc:'Confidentiality & NDA'},
+  {key:'jv-agreement',          phase:'conception',        cat:'Legal',      lucide:'git-merge',          label:'Joint Venture Agreement',            desc:'JV structure & responsibilities'},
+  {key:'prime-contract',        phase:'procurement',       cat:'Legal',      lucide:'file-text',          label:'Prime Contract Agreement',           desc:'Main contract between employer & contractor'},
+  {key:'general-conditions',    phase:'procurement',       cat:'Legal',      lucide:'scroll-text',        label:'General Conditions',                 desc:'Standard contract conditions'},
+  {key:'supplementary-conds',   phase:'procurement',       cat:'Legal',      lucide:'scroll-text',        label:'Supplementary Conditions',           desc:'Special & supplementary conditions'},
+  {key:'subcon-agreement',      phase:'procurement',       cat:'Legal',      lucide:'users',              label:'Subcontractor Agreement',            desc:'Sub-contract terms & conditions'},
+  {key:'performance-bond',      phase:'procurement',       cat:'Legal',      lucide:'shield-check',       label:'Performance Bond',                   desc:'Contractor performance security'},
+  {key:'payment-bond',          phase:'procurement',       cat:'Legal',      lucide:'shield-check',       label:'Payment Bond',                       desc:'Payment security for sub-contractors'},
+  {key:'coi',                   phase:'preconstruction',   cat:'Legal',      lucide:'file-badge-2',       label:'Certificate of Insurance (COI)',     desc:'Evidence of insurance coverage'},
+  {key:'parent-guarantee',      phase:'procurement',       cat:'Legal',      lucide:'shield',             label:'Parent Company Guarantee',           desc:'PCG supporting contractor obligations'},
+  {key:'mfr-warranty',          phase:'post-construction', cat:'Legal',      lucide:'shield-check',       label:'Manufacturer Warranty',              desc:'Product & material warranties'},
+  {key:'product-guarantee',     phase:'post-construction', cat:'Legal',      lucide:'award',              label:'Product Guarantee Certificate',      desc:'Guarantee certificates for installed products'},
+
+  // ── Regulatory & Compliance ─────────────────────────────────────────────
+  {key:'planning-permission',   phase:'permits',           cat:'Regulatory', lucide:'landmark',           label:'Planning Permission Approval',       desc:'Local authority planning consent'},
+  {key:'zoning-approval',       phase:'permits',           cat:'Regulatory', lucide:'map-pin',            label:'Zoning Approval',                    desc:'Zoning & land-use approval'},
+  {key:'building-regs',         phase:'permits',           cat:'Regulatory', lucide:'building-2',         label:'Building Regulations Approval',      desc:'BR compliance approval'},
+  {key:'building-code',         phase:'permits',           cat:'Regulatory', lucide:'book-open',          label:'Building Code Approval',             desc:'Local building code compliance'},
+  {key:'eia',                   phase:'permits',           cat:'Regulatory', lucide:'leaf',               label:'Environmental Impact Assessment',    desc:'EIA report & mitigation'},
+  {key:'fire-strategy',         phase:'permits',           cat:'Regulatory', lucide:'flame',              label:'Fire Strategy Report',               desc:'Fire safety design strategy'},
+  {key:'fire-safety-report',    phase:'permits',           cat:'Regulatory', lucide:'flame',              label:'Fire Safety Report',                 desc:'Operational fire safety document'},
+  {key:'hmo-licence',           phase:'permits',           cat:'Regulatory', lucide:'home',               label:'HMO Licence Application',            desc:'House in Multiple Occupation licence'},
+  {key:'party-wall',            phase:'permits',           cat:'Regulatory', lucide:'building',           label:'Party Wall Agreement',               desc:'Party Wall Act notice & agreement'},
+  {key:'rights-of-light',       phase:'permits',           cat:'Regulatory', lucide:'sun',                label:'Rights of Light Agreement',          desc:'Daylight & sunlight rights negotiation'},
+  {key:'street-works',          phase:'permits',           cat:'Regulatory', lucide:'hard-hat',           label:'Street Works Licence (S50/S278)',    desc:'Highway excavation & junction works licence'},
+  {key:'planning-conditions',   phase:'permits',           cat:'Regulatory', lucide:'check-circle-2',     label:'Discharge of Planning Conditions',   desc:'Approval of pre-commencement conditions'},
+  {key:'sewer-adoption',        phase:'permits',           cat:'Regulatory', lucide:'droplets',           label:'Sewer Adoption Agreement (S104)',    desc:'Adoption of sewers by water authority'},
+  {key:'cert-occupancy',        phase:'post-construction', cat:'Regulatory', lucide:'badge-check',        label:'Certificate of Occupancy',           desc:'Approval to occupy the completed building'},
+  {key:'epc',                   phase:'post-construction', cat:'Regulatory', lucide:'leaf',               label:'Energy Performance Certificate',     desc:'Building energy rating certificate'},
+
+  // ── Design ─────────────────────────────────────────────────────────────
+  {key:'arch-drawings',         phase:'conception',        cat:'Design',     lucide:'pen-tool',           label:'Architectural Drawings',             desc:'Plans, elevations, sections & details'},
+  {key:'structural-drawings',   phase:'conception',        cat:'Design',     lucide:'layers',             label:'Structural Engineering Drawings',    desc:'Structural framing, foundations & details'},
+  {key:'mep-mechanical',        phase:'conception',        cat:'Design',     lucide:'settings',           label:'Mechanical Drawings',                desc:'HVAC, ventilation & mechanical services'},
+  {key:'mep-electrical',        phase:'conception',        cat:'Design',     lucide:'zap',                label:'Electrical Drawings',                desc:'Electrical layout, SLD & containment'},
+  {key:'mep-plumbing',          phase:'conception',        cat:'Design',     lucide:'droplets',           label:'Plumbing Drawings',                  desc:'Water supply, drainage & plumbing layouts'},
+  {key:'room-data-sheets',      phase:'conception',        cat:'Design',     lucide:'layout-grid',        label:'Room Data Sheets (RDS)',             desc:'Room-by-room technical requirements'},
+  {key:'interior-design',       phase:'conception',        cat:'Design',     lucide:'palette',            label:'Interior Design Fit-Out Scheme',     desc:'Interior finishes, FF&E & space planning'},
+  {key:'facade-engineering',    phase:'conception',        cat:'Design',     lucide:'building',           label:'Facade Engineering Details',         desc:'Cladding, curtain wall & envelope details'},
+  {key:'as-built',              phase:'post-construction', cat:'Design',     lucide:'ruler',              label:'As-Built Drawings',                  desc:'Record drawings reflecting constructed works'},
+
+  // ── Technical ──────────────────────────────────────────────────────────
+  {key:'bim-execution-plan',    phase:'conception',        cat:'Technical',  lucide:'box',                label:'BIM Execution Plan (BEP)',           desc:'BIM strategy, levels & collaboration protocol'},
+  {key:'tech-spec',             phase:'conception',        cat:'Technical',  lucide:'file-code',          label:'Technical Specifications',           desc:'Materials, workmanship & performance specs'},
+  {key:'geotechnical-report',   phase:'conception',        cat:'Technical',  lucide:'mountain',           label:'Geotechnical Site Investigation',    desc:'Ground conditions, soil & foundation report'},
+  {key:'topo-survey',           phase:'conception',        cat:'Technical',  lucide:'map',                label:'Topographical Survey Report',        desc:'Site levels, boundaries & features survey'},
+  {key:'drainage-design',       phase:'conception',        cat:'Technical',  lucide:'waypoints',          label:'Drainage Design Layout',             desc:'Surface water, foul & land drainage design'},
+  {key:'acoustic-spec',         phase:'conception',        cat:'Technical',  lucide:'volume-2',           label:'Acoustic Performance Specification', desc:'Sound insulation & noise criteria'},
+
+  // ── Document Control ───────────────────────────────────────────────────
+  {key:'doc-review-register',   phase:'preconstruction',   cat:'DocControl', lucide:'table-2',            label:'Technical Document Review Register', desc:'Drawing review log with Status A/B/C/D codes'},
+  {key:'midp',                  phase:'preconstruction',   cat:'DocControl', lucide:'list-ordered',       label:'Document Master Roll / MIDP',        desc:'Master information delivery plan & document schedule'},
+  {key:'clash-detection-log',   phase:'conception',        cat:'DocControl', lucide:'git-merge',          label:'Design Clash Detection Log',         desc:'BIM coordination clash report & resolution'},
+  {key:'drawing-distribution',  phase:'conception',        cat:'DocControl', lucide:'share-2',            label:'Drawing Distribution Matrix',        desc:'Who receives which drawings and at which revision'},
+  {key:'drawing-revision-log',  phase:'construction',      cat:'DocControl', lucide:'history',            label:'Drawing Revision Tracking Log',      desc:'Revision-by-revision change record for all drawings'},
+  {key:'design-signoff-matrix', phase:'conception',        cat:'DocControl', lucide:'check-square',       label:'Client Design Sign-Off Matrix',      desc:'Client approval status for each design package'},
+
+  // ── Commercial ─────────────────────────────────────────────────────────
+  {key:'schedule-of-rates',     phase:'procurement',       cat:'Commercial', lucide:'table-2',            label:'Schedule of Rates',                  desc:'Unit rates for measured works & variations'},
+  {key:'purchase-order',        phase:'procurement',       cat:'Commercial', lucide:'shopping-bag',       label:'Purchase Order (PO)',                desc:'Formal order for materials or services'},
+  {key:'valuation-application', phase:'procurement',       cat:'Commercial', lucide:'coins',              label:'Valuation Application',              desc:'Contractor application for interim payment'},
+  {key:'payment-application',   phase:'construction',      cat:'Commercial', lucide:'receipt',            label:'Payment Application',                desc:'Progress payment application & breakdown'},
+  {key:'cor',                   phase:'construction',      cat:'Commercial', lucide:'git-pull-request',   label:'Change Order Request (COR)',         desc:'Formal request for scope & cost change'},
+  {key:'vesting-certificate',   phase:'procurement',       cat:'Commercial', lucide:'badge-check',        label:'Vesting Certificate',                desc:'Off-site materials ownership transfer'},
+  {key:'itt',                   phase:'procurement',       cat:'Commercial', lucide:'mail-open',          label:'Invitation to Tender (ITT)',         desc:'Tender documents issued to bidders'},
+  {key:'form-of-tender',        phase:'procurement',       cat:'Commercial', lucide:'file-pen-line',      label:'Form of Tender',                     desc:'Contractor formal tender submission'},
+  {key:'tender-query-log',      phase:'procurement',       cat:'Commercial', lucide:'help-circle',        label:'Tender Query Log',                   desc:'Bidder questions & clarification responses'},
+  {key:'subcon-quote',          phase:'procurement',       cat:'Commercial', lucide:'receipt',            label:'Subcontractor Quote',                desc:'Sub-contractor pricing submission'},
+  {key:'cvr',                   phase:'construction',      cat:'Commercial', lucide:'trending-up',        label:'Commercial Cost Report (CVR)',       desc:'Cost-value reconciliation & earned value report'},
+  {key:'final-account',         phase:'post-construction', cat:'Commercial', lucide:'check-circle-2',     label:'Final Account Agreement',            desc:'Agreed final contract sum & settlement'},
+  {key:'finishes-tracker',      phase:'procurement',       cat:'Commercial', lucide:'palette',            label:'Finishes Procurement Tracker',       desc:'Status of finishes selection, approval & ordering'},
+  {key:'ffe-tracker',           phase:'procurement',       cat:'Commercial', lucide:'package',            label:'FF&E Tracker',                       desc:'Furniture, fixtures & equipment procurement status'},
+  {key:'long-lead-tracker',     phase:'procurement',       cat:'Commercial', lucide:'clock',              label:'Long-Lead Equipment Tracker',        desc:'Critical equipment lead-time monitoring'},
+  {key:'fabrication-tracker',   phase:'procurement',       cat:'Commercial', lucide:'factory',            label:'Fabrication Status Tracker',         desc:'Off-site fabrication progress log'},
+  {key:'shipping-log',          phase:'procurement',       cat:'Commercial', lucide:'truck',              label:'Shipping & Logistics Log',           desc:'Material delivery schedule & shipment tracking'},
+  {key:'osm-log',               phase:'procurement',       cat:'Commercial', lucide:'package',            label:'Off-Site Manufacturing Log',         desc:'OSM and modular construction progress tracker'},
+  {key:'plant-hire',            phase:'procurement',       cat:'Commercial', lucide:'settings',           label:'Plant Hire Agreement',               desc:'Hired plant & equipment terms'},
+
+  // ── PM / Site Admin additions ───────────────────────────────────────────
+  {key:'cpp',                   phase:'preconstruction',   cat:'PM',         lucide:'hard-hat',           label:'Construction Phase Plan (CPP)',      desc:'HSE construction phase plan & site setup'},
+  {key:'rfi',                   phase:'construction',      cat:'PM',         lucide:'help-circle',        label:'Request for Information (RFI)',      desc:'Formal design clarification from contractor'},
+  {key:'logistics-plan',        phase:'preconstruction',   cat:'PM',         lucide:'truck',              label:'Logistics Plan',                     desc:'Site access, deliveries & traffic management'},
+  {key:'cow-report',            phase:'construction',      cat:'PM',         lucide:'clipboard',          label:'Clerk of Works Report',              desc:'Independent inspection & observation report'},
+  {key:'weather-record',        phase:'construction',      cat:'PM',         lucide:'cloud',              label:'Weather Record',                     desc:'Daily weather conditions & site impact log'},
+  {key:'submittal-appr-tracker',phase:'procurement',       cat:'PM',         lucide:'check-square',       label:'Material Submittal Approval Tracker', desc:'Status of all material & product approvals'},
+  {key:'om-manual',             phase:'post-construction', cat:'PM',         lucide:'book',               label:'Operation & Maintenance Manual',     desc:'Building O&M guide for facilities management'},
+  {key:'asset-register',        phase:'post-construction', cat:'PM',         lucide:'database',           label:'Asset Register',                     desc:'Inventory of installed assets & equipment'},
+  {key:'building-logbook',      phase:'post-construction', cat:'PM',         lucide:'notebook',           label:'Building Logbook',                   desc:'Building systems, services & maintenance record'},
+  {key:'key-handover',          phase:'post-construction', cat:'PM',         lucide:'key',                label:'Key Handover Receipt',               desc:'Record of keys & access credentials handed over'},
+  {key:'decommission-plan',     phase:'post-construction', cat:'PM',         lucide:'trash-2',            label:'Decommissioning Plan',               desc:'Planned decommissioning & site clearance'},
+
+  // ── HSE additions ──────────────────────────────────────────────────────
+  {key:'site-induction',        phase:'preconstruction',   cat:'HSE',        lucide:'users',              label:'Site Induction Records',             desc:'Worker induction register & acknowledgements'},
+  {key:'coshh',                 phase:'preconstruction',   cat:'HSE',        lucide:'flask-conical',      label:'COSHH Assessment',                   desc:'Control of substances hazardous to health'},
+  {key:'lifting-plan',          phase:'preconstruction',   cat:'HSE',        lucide:'arrow-up-from-line', label:'Lifting Plan',                       desc:'Crane & lifting operations plan'},
+  {key:'permit-to-work',        phase:'construction',      cat:'HSE',        lucide:'key',                label:'Permit to Work',                     desc:'Confined space, hot work & high-risk permits'},
+  {key:'site-attendance',       phase:'construction',      cat:'HSE',        lucide:'user-check',         label:'Site Attendance Register',           desc:'Daily site sign-in register'},
+  {key:'accident-record',       phase:'construction',      cat:'HSE',        lucide:'alert-triangle',     label:'Accident Book Record',               desc:'Incident & near-miss recording'},
+  {key:'toolbox-talk-log',      phase:'construction',      cat:'HSE',        lucide:'mic',                label:'Toolbox Talk Log',                   desc:'Site safety briefing attendance records'},
+  {key:'hs-file',               phase:'post-construction', cat:'HSE',        lucide:'folder-open',        label:'Health & Safety File',               desc:'Project H&S file for future maintenance'},
+
+  // ── QA additions ───────────────────────────────────────────────────────
+  {key:'concrete-pour-log',     phase:'construction',      cat:'QA',         lucide:'droplets',           label:'Concrete Pour Log',                  desc:'Pour sequence, mix design & placement records'},
+  {key:'cube-test-cert',        phase:'construction',      cat:'QA',         lucide:'box',                label:'Concrete Cube Test Certificate',     desc:'Compressive strength test results'},
+  {key:'sample-approval',       phase:'procurement',       cat:'QA',         lucide:'check-circle-2',     label:'Sample Approval Log',                desc:'Material & finish sample approval register'},
+
+  // ── Governance & Registers ─────────────────────────────────────────────
+  {key:'risk-register',         phase:'governance',        cat:'Governance', lucide:'shield-alert',       label:'Risk Register',                      desc:'Project risk log with probability, impact & mitigation'},
+  {key:'issues-log',            phase:'governance',        cat:'Governance', lucide:'list-todo',          label:'Issues Log',                         desc:'Open issues tracker with owner & resolution'},
+  {key:'lessons-learned',       phase:'governance',        cat:'Governance', lucide:'book-open',          label:'Lessons Learned Register',           desc:'Post-activity & project lessons captured'},
+  {key:'delay-log',             phase:'governance',        cat:'Governance', lucide:'timer',              label:'Delay Log (EOT Tracker)',            desc:'Delay events & extension of time tracking'},
+  {key:'action-item-matrix',    phase:'governance',        cat:'Governance', lucide:'clipboard-check',    label:'Action Item Matrix',                 desc:'Open actions, owners & due dates'},
+  {key:'ewn',                   phase:'governance',        cat:'Governance', lucide:'bell-ring',          label:'Early Warning Notice (EWN)',         desc:'NEC early warning of risk or change event'},
+  {key:'compensation-tracker',  phase:'governance',        cat:'Governance', lucide:'scale',              label:'Compensation Event Tracker',         desc:'NEC compensation events, status & value'},
 ];
 
 const WIZ_CATS = ['All','PM','HSE','QA','Finance','Minutes','HSE/QA'];
@@ -3587,7 +3706,8 @@ function renderWizard() {
       preconstruction:'Mobilisation, HSE planning, contractor selection, method statements and pre-start submittals.',
       procurement:'Sub-contract award, variation control, submittal approvals, and payment mechanisms.',
       construction:'Active site delivery - progress reporting, instructions, QA/QC, daily records and claims.',
-      'post-construction':'Commissioning, practical completion, snagging, handover and closeout.'
+      'post-construction':'Commissioning, practical completion, snagging, handover and closeout.',
+      'governance':'Risk registers, issues logs, delay trackers, early warning notices, compensation event trackers and lessons learned.'
     };
     const bannerHtml = phaseMeta ? `
       <div class="wiz-phase-banner" style="background:linear-gradient(135deg,${phaseMeta.color}18,${phaseMeta.color}08);border-color:${phaseMeta.color}33">
