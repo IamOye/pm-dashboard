@@ -757,6 +757,71 @@ function renderProjectDetail() {
 .pd-ms-dot.completed{background:var(--green)}.pd-ms-dot.on_track{background:var(--accent)}
 .pd-ms-dot.at_risk{background:var(--yellow)}.pd-ms-dot.delayed{background:var(--red)}.pd-ms-dot.not_started{background:var(--muted)}
 
+
+/* ═══════════════════════════════════════════
+   ONBOARDING WIZARD
+═══════════════════════════════════════════ */
+.ob-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px)}
+.ob-overlay.hidden{display:none}
+.ob-card{background:var(--card);border:1px solid var(--border);border-radius:20px;width:100%;max-width:520px;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.5);animation:fadeSlideUp .38s cubic-bezier(.22,1,.36,1) both}
+.ob-progress{height:3px;background:var(--border)}
+.ob-progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),#a855f7);transition:width .4s ease;border-radius:3px}
+.ob-body{padding:36px 36px 28px}
+.ob-step{display:none}.ob-step.active{display:block}
+.ob-icon{font-size:42px;margin-bottom:16px;display:block}
+.ob-title{font-size:22px;font-weight:800;color:var(--text);margin-bottom:8px;line-height:1.2}
+.ob-sub{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:24px}
+.ob-field{margin-bottom:16px}
+.ob-field label{display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px}
+.ob-field input,.ob-field select{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:10px;font-size:13px;font-family:var(--font);transition:border-color .15s;box-sizing:border-box}
+.ob-field input:focus,.ob-field select:focus{outline:none;border-color:var(--accent);background:var(--bg-2)}
+.ob-role-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px}
+.ob-role-btn{padding:14px 12px;background:var(--bg);border:2px solid var(--border);border-radius:12px;cursor:pointer;text-align:center;transition:all .2s;color:var(--muted)}
+.ob-role-btn:hover{border-color:var(--accent);color:var(--text);background:rgba(99,102,241,.08)}
+.ob-role-btn.selected{border-color:var(--accent);background:rgba(99,102,241,.12);color:var(--accent-2)}
+.ob-role-btn .role-icon{font-size:24px;display:block;margin-bottom:6px}
+.ob-role-btn .role-lbl{font-size:12px;font-weight:700}
+.ob-mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px}
+.ob-mode-card{padding:18px 14px;background:var(--bg);border:2px solid var(--border);border-radius:12px;cursor:pointer;text-align:center;transition:all .2s;color:var(--muted)}
+.ob-mode-card:hover{border-color:var(--accent);background:rgba(99,102,241,.06)}
+.ob-mode-card.selected{border-color:var(--accent);background:rgba(99,102,241,.12);color:var(--accent-2)}
+.ob-mode-card .mode-icon{font-size:28px;display:block;margin-bottom:8px}
+.ob-mode-card .mode-lbl{font-size:13px;font-weight:700;margin-bottom:4px;color:var(--text)}
+.ob-mode-card .mode-sub{font-size:11px;color:var(--muted);line-height:1.4}
+.ob-features{display:flex;flex-direction:column;gap:10px;margin-bottom:8px}
+.ob-feature{display:flex;align-items:center;gap:14px;padding:12px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border)}
+.ob-feature-icon{font-size:20px;flex-shrink:0;width:32px;text-align:center}
+.ob-feature-text{font-size:12px;color:var(--muted);line-height:1.4}
+.ob-feature-text strong{display:block;font-size:13px;color:var(--text);margin-bottom:2px}
+.ob-footer{display:flex;align-items:center;justify-content:space-between;padding:20px 36px;border-top:1px solid var(--border);background:var(--bg)}
+.ob-dots{display:flex;gap:6px}
+.ob-dot{width:6px;height:6px;border-radius:50%;background:var(--border);transition:all .2s}
+.ob-dot.active{background:var(--accent);width:18px;border-radius:3px}
+.ob-skip{font-size:12px;color:var(--muted);cursor:pointer;background:none;border:none;font-family:var(--font);padding:4px 8px;border-radius:6px;transition:color .15s}
+.ob-skip:hover{color:var(--text)}
+.ob-next{background:var(--accent);color:#fff;border:none;padding:10px 24px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all .15s;display:flex;align-items:center;gap:8px}
+.ob-next:hover{background:#5254d4;transform:translateY(-1px);box-shadow:0 4px 14px rgba(99,102,241,.4)}
+.ob-next:disabled{opacity:.4;cursor:not-allowed;transform:none}
+
+/* ═══════════════════════════════════════════
+   FEATURE TOUR SPOTLIGHT
+═══════════════════════════════════════════ */
+.tour-backdrop{position:fixed;inset:0;z-index:1800;pointer-events:none}
+.tour-backdrop.active{pointer-events:all}
+.tour-hole{position:fixed;box-shadow:0 0 0 9999px rgba(0,0,0,.6);border-radius:10px;transition:all .35s cubic-bezier(.4,0,.2,1);z-index:1801;pointer-events:none}
+.tour-tooltip{position:fixed;background:var(--card);border:1px solid var(--accent);border-radius:14px;padding:18px 20px;max-width:280px;z-index:1802;box-shadow:0 12px 40px rgba(0,0,0,.4);animation:fadeSlideUp .25s ease both}
+.tour-tooltip-title{font-size:13px;font-weight:800;color:var(--text);margin-bottom:6px}
+.tour-tooltip-body{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:14px}
+.tour-tooltip-footer{display:flex;align-items:center;justify-content:space-between}
+.tour-step-counter{font-size:11px;color:var(--muted)}
+.tour-next-btn{background:var(--accent);color:#fff;border:none;padding:7px 16px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)}
+.tour-skip-btn{font-size:11px;color:var(--muted);cursor:pointer;background:none;border:none;font-family:var(--font);padding:4px}
+.tour-skip-btn:hover{color:var(--text)}
+
+/* Tour trigger button */
+#tourBtn{position:fixed;bottom:80px;right:22px;z-index:1000;width:38px;height:38px;border-radius:50%;background:var(--card);border:1px solid var(--border);color:var(--muted);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;box-shadow:var(--shadow)}
+#tourBtn:hover{background:var(--accent);color:#fff;border-color:var(--accent);transform:scale(1.1)}
+
 /* PRINT */
 @media print{
   /* hide all app chrome */
@@ -5145,6 +5210,8 @@ function aiGenerateResponse(q){
    INIT
 ═══════════════════════════════════════════════ */
 load();
+applyViewMode();
+setTimeout(obStart, 600);
 populateProjectFilter();
 pmRenderProfile();
 updateSidebarCtx();
@@ -5847,6 +5914,114 @@ function boqPrint(){
   </div>
 </div>
 
+
+<!-- ═══════════════════ ONBOARDING WIZARD ═══════════════════ -->
+<div class="ob-overlay hidden" id="obOverlay">
+  <div class="ob-card">
+    <div class="ob-progress"><div class="ob-progress-fill" id="obProgressFill" style="width:0%"></div></div>
+    <div class="ob-body">
+
+      <!-- Step 1: Welcome -->
+      <div class="ob-step active" id="ob-step-1">
+        <span class="ob-icon">🏗️</span>
+        <div class="ob-title">Welcome to the EVD PM Dashboard</div>
+        <div class="ob-sub">A single command centre for every project — budgets, schedules, risks, documents, and real-time KPIs. Let's get you set up in under a minute.</div>
+        <div class="ob-features">
+          <div class="ob-feature"><div class="ob-feature-icon">📊</div><div class="ob-feature-text"><strong>Live Portfolio Overview</strong>Real-time progress, spend, and risk across all active projects</div></div>
+          <div class="ob-feature"><div class="ob-feature-icon">📁</div><div class="ob-feature-text"><strong>Document Register</strong>Every drawing, spec, contract and submittal — tracked and searchable</div></div>
+          <div class="ob-feature"><div class="ob-feature-icon">🤖</div><div class="ob-feature-text"><strong>AI Co-Pilot</strong>Ask questions about any project and get instant, data-backed answers</div></div>
+        </div>
+      </div>
+
+      <!-- Step 2: Who are you? -->
+      <div class="ob-step" id="ob-step-2">
+        <span class="ob-icon">👤</span>
+        <div class="ob-title">Tell us about yourself</div>
+        <div class="ob-sub">We'll personalise your experience based on your role.</div>
+        <div class="ob-field">
+          <label>Your Name</label>
+          <input type="text" id="ob-name" placeholder="e.g. Amaka Okafor" autocomplete="name">
+        </div>
+        <div class="ob-field">
+          <label>Organisation</label>
+          <input type="text" id="ob-org" placeholder="e.g. Pan Atlantic University" autocomplete="organization">
+        </div>
+        <div class="ob-field"><label>Your Role</label></div>
+        <div class="ob-role-grid">
+          <div class="ob-role-btn" data-role="Client / Stakeholder" onclick="selectRole(this)"><span class="role-icon">🏢</span><span class="role-lbl">Client / Stakeholder</span></div>
+          <div class="ob-role-btn" data-role="Project Manager" onclick="selectRole(this)"><span class="role-icon">📋</span><span class="role-lbl">Project Manager</span></div>
+          <div class="ob-role-btn" data-role="Director / Executive" onclick="selectRole(this)"><span class="role-icon">👔</span><span class="role-lbl">Director / Executive</span></div>
+          <div class="ob-role-btn" data-role="Site / Technical" onclick="selectRole(this)"><span class="role-icon">🦺</span><span class="role-lbl">Site / Technical</span></div>
+        </div>
+      </div>
+
+      <!-- Step 3: View mode -->
+      <div class="ob-step" id="ob-step-3">
+        <span class="ob-icon">⚙️</span>
+        <div class="ob-title">How will you use the dashboard?</div>
+        <div class="ob-sub">This sets your default experience. You can always change it later.</div>
+        <div class="ob-mode-grid">
+          <div class="ob-mode-card" data-mode="view" onclick="selectMode(this)">
+            <span class="mode-icon">👁️</span>
+            <div class="mode-lbl">View & Monitor</div>
+            <div class="mode-sub">Review progress, read reports, and track KPIs across projects</div>
+          </div>
+          <div class="ob-mode-card" data-mode="manage" onclick="selectMode(this)">
+            <span class="mode-icon">✏️</span>
+            <div class="mode-lbl">Manage Projects</div>
+            <div class="mode-sub">Add projects, log risks, upload documents, and edit data</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4: Ready -->
+      <div class="ob-step" id="ob-step-4">
+        <span class="ob-icon">🚀</span>
+        <div class="ob-title" id="ob-ready-title">You're all set!</div>
+        <div class="ob-sub" id="ob-ready-sub">The dashboard is loaded with live project data. Click "Start Tour" for a 60-second walkthrough of the key features, or jump straight in.</div>
+        <div class="ob-features">
+          <div class="ob-feature"><div class="ob-feature-icon">💡</div><div class="ob-feature-text"><strong>Tip: Click any project card</strong>Opens a KPI panel with CPI, SPI, safety scores and a full detail view with charts</div></div>
+          <div class="ob-feature"><div class="ob-feature-icon">🌙</div><div class="ob-feature-text"><strong>Dark / Light mode</strong>Toggle the theme using the 🌙 button in the top-right at any time</div></div>
+          <div class="ob-feature"><div class="ob-feature-icon">❓</div><div class="ob-feature-text"><strong>Re-start the tour anytime</strong>Hit the ❓ button in the bottom-right corner of the screen</div></div>
+        </div>
+      </div>
+
+    </div><!-- /ob-body -->
+    <div class="ob-footer">
+      <div class="ob-dots">
+        <div class="ob-dot active" id="dot-1"></div>
+        <div class="ob-dot" id="dot-2"></div>
+        <div class="ob-dot" id="dot-3"></div>
+        <div class="ob-dot" id="dot-4"></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="ob-skip" id="obSkipBtn" onclick="skipOnboarding()">Skip</button>
+        <button class="ob-next" id="obNextBtn" onclick="obNext()">
+          Get Started <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ TOUR SPOTLIGHT ═══════════════════ -->
+<div class="tour-backdrop" id="tourBackdrop" onclick="endTour()"></div>
+<div class="tour-hole" id="tourHole" style="display:none"></div>
+<div class="tour-tooltip" id="tourTooltip" style="display:none">
+  <div class="tour-tooltip-title" id="tourTitle"></div>
+  <div class="tour-tooltip-body" id="tourBody"></div>
+  <div class="tour-tooltip-footer">
+    <div style="display:flex;flex-direction:column;gap:2px">
+      <div class="tour-step-counter" id="tourCounter"></div>
+      <button class="tour-skip-btn" onclick="endTour()">Skip tour</button>
+    </div>
+    <button class="tour-next-btn" id="tourNextBtn" onclick="tourNext()">Next →</button>
+  </div>
+</div>
+
+<!-- Tour trigger -->
+<button id="tourBtn" onclick="startTour()" title="Feature tour">❓</button>
+
 </body></html>`);
   win.document.close();
 }
@@ -6031,6 +6206,114 @@ function exportPDF() {
   </div>
 </div>
 
+
+<!-- ═══════════════════ ONBOARDING WIZARD ═══════════════════ -->
+<div class="ob-overlay hidden" id="obOverlay">
+  <div class="ob-card">
+    <div class="ob-progress"><div class="ob-progress-fill" id="obProgressFill" style="width:0%"></div></div>
+    <div class="ob-body">
+
+      <!-- Step 1: Welcome -->
+      <div class="ob-step active" id="ob-step-1">
+        <span class="ob-icon">🏗️</span>
+        <div class="ob-title">Welcome to the EVD PM Dashboard</div>
+        <div class="ob-sub">A single command centre for every project — budgets, schedules, risks, documents, and real-time KPIs. Let's get you set up in under a minute.</div>
+        <div class="ob-features">
+          <div class="ob-feature"><div class="ob-feature-icon">📊</div><div class="ob-feature-text"><strong>Live Portfolio Overview</strong>Real-time progress, spend, and risk across all active projects</div></div>
+          <div class="ob-feature"><div class="ob-feature-icon">📁</div><div class="ob-feature-text"><strong>Document Register</strong>Every drawing, spec, contract and submittal — tracked and searchable</div></div>
+          <div class="ob-feature"><div class="ob-feature-icon">🤖</div><div class="ob-feature-text"><strong>AI Co-Pilot</strong>Ask questions about any project and get instant, data-backed answers</div></div>
+        </div>
+      </div>
+
+      <!-- Step 2: Who are you? -->
+      <div class="ob-step" id="ob-step-2">
+        <span class="ob-icon">👤</span>
+        <div class="ob-title">Tell us about yourself</div>
+        <div class="ob-sub">We'll personalise your experience based on your role.</div>
+        <div class="ob-field">
+          <label>Your Name</label>
+          <input type="text" id="ob-name" placeholder="e.g. Amaka Okafor" autocomplete="name">
+        </div>
+        <div class="ob-field">
+          <label>Organisation</label>
+          <input type="text" id="ob-org" placeholder="e.g. Pan Atlantic University" autocomplete="organization">
+        </div>
+        <div class="ob-field"><label>Your Role</label></div>
+        <div class="ob-role-grid">
+          <div class="ob-role-btn" data-role="Client / Stakeholder" onclick="selectRole(this)"><span class="role-icon">🏢</span><span class="role-lbl">Client / Stakeholder</span></div>
+          <div class="ob-role-btn" data-role="Project Manager" onclick="selectRole(this)"><span class="role-icon">📋</span><span class="role-lbl">Project Manager</span></div>
+          <div class="ob-role-btn" data-role="Director / Executive" onclick="selectRole(this)"><span class="role-icon">👔</span><span class="role-lbl">Director / Executive</span></div>
+          <div class="ob-role-btn" data-role="Site / Technical" onclick="selectRole(this)"><span class="role-icon">🦺</span><span class="role-lbl">Site / Technical</span></div>
+        </div>
+      </div>
+
+      <!-- Step 3: View mode -->
+      <div class="ob-step" id="ob-step-3">
+        <span class="ob-icon">⚙️</span>
+        <div class="ob-title">How will you use the dashboard?</div>
+        <div class="ob-sub">This sets your default experience. You can always change it later.</div>
+        <div class="ob-mode-grid">
+          <div class="ob-mode-card" data-mode="view" onclick="selectMode(this)">
+            <span class="mode-icon">👁️</span>
+            <div class="mode-lbl">View & Monitor</div>
+            <div class="mode-sub">Review progress, read reports, and track KPIs across projects</div>
+          </div>
+          <div class="ob-mode-card" data-mode="manage" onclick="selectMode(this)">
+            <span class="mode-icon">✏️</span>
+            <div class="mode-lbl">Manage Projects</div>
+            <div class="mode-sub">Add projects, log risks, upload documents, and edit data</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4: Ready -->
+      <div class="ob-step" id="ob-step-4">
+        <span class="ob-icon">🚀</span>
+        <div class="ob-title" id="ob-ready-title">You're all set!</div>
+        <div class="ob-sub" id="ob-ready-sub">The dashboard is loaded with live project data. Click "Start Tour" for a 60-second walkthrough of the key features, or jump straight in.</div>
+        <div class="ob-features">
+          <div class="ob-feature"><div class="ob-feature-icon">💡</div><div class="ob-feature-text"><strong>Tip: Click any project card</strong>Opens a KPI panel with CPI, SPI, safety scores and a full detail view with charts</div></div>
+          <div class="ob-feature"><div class="ob-feature-icon">🌙</div><div class="ob-feature-text"><strong>Dark / Light mode</strong>Toggle the theme using the 🌙 button in the top-right at any time</div></div>
+          <div class="ob-feature"><div class="ob-feature-icon">❓</div><div class="ob-feature-text"><strong>Re-start the tour anytime</strong>Hit the ❓ button in the bottom-right corner of the screen</div></div>
+        </div>
+      </div>
+
+    </div><!-- /ob-body -->
+    <div class="ob-footer">
+      <div class="ob-dots">
+        <div class="ob-dot active" id="dot-1"></div>
+        <div class="ob-dot" id="dot-2"></div>
+        <div class="ob-dot" id="dot-3"></div>
+        <div class="ob-dot" id="dot-4"></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="ob-skip" id="obSkipBtn" onclick="skipOnboarding()">Skip</button>
+        <button class="ob-next" id="obNextBtn" onclick="obNext()">
+          Get Started <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ TOUR SPOTLIGHT ═══════════════════ -->
+<div class="tour-backdrop" id="tourBackdrop" onclick="endTour()"></div>
+<div class="tour-hole" id="tourHole" style="display:none"></div>
+<div class="tour-tooltip" id="tourTooltip" style="display:none">
+  <div class="tour-tooltip-title" id="tourTitle"></div>
+  <div class="tour-tooltip-body" id="tourBody"></div>
+  <div class="tour-tooltip-footer">
+    <div style="display:flex;flex-direction:column;gap:2px">
+      <div class="tour-step-counter" id="tourCounter"></div>
+      <button class="tour-skip-btn" onclick="endTour()">Skip tour</button>
+    </div>
+    <button class="tour-next-btn" id="tourNextBtn" onclick="tourNext()">Next →</button>
+  </div>
+</div>
+
+<!-- Tour trigger -->
+<button id="tourBtn" onclick="startTour()" title="Feature tour">❓</button>
+
 </body></html>`);
   win.document.close();
 }
@@ -6083,6 +6366,114 @@ function exportDOCX() {
     <button class="btn btn-ghost" style="flex:1" id="pkdNavBtn">📊 Full Details</button>
   </div>
 </div>
+
+
+<!-- ═══════════════════ ONBOARDING WIZARD ═══════════════════ -->
+<div class="ob-overlay hidden" id="obOverlay">
+  <div class="ob-card">
+    <div class="ob-progress"><div class="ob-progress-fill" id="obProgressFill" style="width:0%"></div></div>
+    <div class="ob-body">
+
+      <!-- Step 1: Welcome -->
+      <div class="ob-step active" id="ob-step-1">
+        <span class="ob-icon">🏗️</span>
+        <div class="ob-title">Welcome to the EVD PM Dashboard</div>
+        <div class="ob-sub">A single command centre for every project — budgets, schedules, risks, documents, and real-time KPIs. Let's get you set up in under a minute.</div>
+        <div class="ob-features">
+          <div class="ob-feature"><div class="ob-feature-icon">📊</div><div class="ob-feature-text"><strong>Live Portfolio Overview</strong>Real-time progress, spend, and risk across all active projects</div></div>
+          <div class="ob-feature"><div class="ob-feature-icon">📁</div><div class="ob-feature-text"><strong>Document Register</strong>Every drawing, spec, contract and submittal — tracked and searchable</div></div>
+          <div class="ob-feature"><div class="ob-feature-icon">🤖</div><div class="ob-feature-text"><strong>AI Co-Pilot</strong>Ask questions about any project and get instant, data-backed answers</div></div>
+        </div>
+      </div>
+
+      <!-- Step 2: Who are you? -->
+      <div class="ob-step" id="ob-step-2">
+        <span class="ob-icon">👤</span>
+        <div class="ob-title">Tell us about yourself</div>
+        <div class="ob-sub">We'll personalise your experience based on your role.</div>
+        <div class="ob-field">
+          <label>Your Name</label>
+          <input type="text" id="ob-name" placeholder="e.g. Amaka Okafor" autocomplete="name">
+        </div>
+        <div class="ob-field">
+          <label>Organisation</label>
+          <input type="text" id="ob-org" placeholder="e.g. Pan Atlantic University" autocomplete="organization">
+        </div>
+        <div class="ob-field"><label>Your Role</label></div>
+        <div class="ob-role-grid">
+          <div class="ob-role-btn" data-role="Client / Stakeholder" onclick="selectRole(this)"><span class="role-icon">🏢</span><span class="role-lbl">Client / Stakeholder</span></div>
+          <div class="ob-role-btn" data-role="Project Manager" onclick="selectRole(this)"><span class="role-icon">📋</span><span class="role-lbl">Project Manager</span></div>
+          <div class="ob-role-btn" data-role="Director / Executive" onclick="selectRole(this)"><span class="role-icon">👔</span><span class="role-lbl">Director / Executive</span></div>
+          <div class="ob-role-btn" data-role="Site / Technical" onclick="selectRole(this)"><span class="role-icon">🦺</span><span class="role-lbl">Site / Technical</span></div>
+        </div>
+      </div>
+
+      <!-- Step 3: View mode -->
+      <div class="ob-step" id="ob-step-3">
+        <span class="ob-icon">⚙️</span>
+        <div class="ob-title">How will you use the dashboard?</div>
+        <div class="ob-sub">This sets your default experience. You can always change it later.</div>
+        <div class="ob-mode-grid">
+          <div class="ob-mode-card" data-mode="view" onclick="selectMode(this)">
+            <span class="mode-icon">👁️</span>
+            <div class="mode-lbl">View & Monitor</div>
+            <div class="mode-sub">Review progress, read reports, and track KPIs across projects</div>
+          </div>
+          <div class="ob-mode-card" data-mode="manage" onclick="selectMode(this)">
+            <span class="mode-icon">✏️</span>
+            <div class="mode-lbl">Manage Projects</div>
+            <div class="mode-sub">Add projects, log risks, upload documents, and edit data</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4: Ready -->
+      <div class="ob-step" id="ob-step-4">
+        <span class="ob-icon">🚀</span>
+        <div class="ob-title" id="ob-ready-title">You're all set!</div>
+        <div class="ob-sub" id="ob-ready-sub">The dashboard is loaded with live project data. Click "Start Tour" for a 60-second walkthrough of the key features, or jump straight in.</div>
+        <div class="ob-features">
+          <div class="ob-feature"><div class="ob-feature-icon">💡</div><div class="ob-feature-text"><strong>Tip: Click any project card</strong>Opens a KPI panel with CPI, SPI, safety scores and a full detail view with charts</div></div>
+          <div class="ob-feature"><div class="ob-feature-icon">🌙</div><div class="ob-feature-text"><strong>Dark / Light mode</strong>Toggle the theme using the 🌙 button in the top-right at any time</div></div>
+          <div class="ob-feature"><div class="ob-feature-icon">❓</div><div class="ob-feature-text"><strong>Re-start the tour anytime</strong>Hit the ❓ button in the bottom-right corner of the screen</div></div>
+        </div>
+      </div>
+
+    </div><!-- /ob-body -->
+    <div class="ob-footer">
+      <div class="ob-dots">
+        <div class="ob-dot active" id="dot-1"></div>
+        <div class="ob-dot" id="dot-2"></div>
+        <div class="ob-dot" id="dot-3"></div>
+        <div class="ob-dot" id="dot-4"></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="ob-skip" id="obSkipBtn" onclick="skipOnboarding()">Skip</button>
+        <button class="ob-next" id="obNextBtn" onclick="obNext()">
+          Get Started <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ TOUR SPOTLIGHT ═══════════════════ -->
+<div class="tour-backdrop" id="tourBackdrop" onclick="endTour()"></div>
+<div class="tour-hole" id="tourHole" style="display:none"></div>
+<div class="tour-tooltip" id="tourTooltip" style="display:none">
+  <div class="tour-tooltip-title" id="tourTitle"></div>
+  <div class="tour-tooltip-body" id="tourBody"></div>
+  <div class="tour-tooltip-footer">
+    <div style="display:flex;flex-direction:column;gap:2px">
+      <div class="tour-step-counter" id="tourCounter"></div>
+      <button class="tour-skip-btn" onclick="endTour()">Skip tour</button>
+    </div>
+    <button class="tour-next-btn" id="tourNextBtn" onclick="tourNext()">Next →</button>
+  </div>
+</div>
+
+<!-- Tour trigger -->
+<button id="tourBtn" onclick="startTour()" title="Feature tour">❓</button>
 
 </body></html>`;
   const blob = new Blob([html], {type:'application/msword'});
@@ -6345,6 +6736,211 @@ function buildExportRows() {
     el.addEventListener('mouseleave', hideNavTip);
   });
 })();
+
+/* ═══════════════════════════════════════════
+   ONBOARDING WIZARD
+═══════════════════════════════════════════ */
+var obCurrentStep = 1;
+var obTotalSteps  = 4;
+var obSelectedRole = '';
+var obSelectedMode = 'view';
+
+function obStart() {
+  var seen = localStorage.getItem('evd_onboarded');
+  if (!seen) {
+    document.getElementById('obOverlay').classList.remove('hidden');
+    obGoTo(1);
+  }
+}
+
+function obGoTo(step) {
+  obCurrentStep = step;
+  // Steps
+  for (var i=1;i<=obTotalSteps;i++) {
+    var s = document.getElementById('ob-step-'+i);
+    if (s) s.classList.toggle('active', i===step);
+    var d = document.getElementById('dot-'+i);
+    if (d) d.classList.toggle('active', i===step);
+  }
+  // Progress bar
+  document.getElementById('obProgressFill').style.width = ((step-1)/(obTotalSteps-1)*100)+'%';
+  // Next button label
+  var btn = document.getElementById('obNextBtn');
+  if (step === obTotalSteps) {
+    btn.innerHTML = 'Take the Tour <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
+    document.getElementById('obSkipBtn').textContent = 'Jump straight in';
+  } else if (step === 1) {
+    btn.innerHTML = 'Get Started <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>';
+    document.getElementById('obSkipBtn').textContent = 'Skip';
+  } else {
+    btn.innerHTML = 'Continue <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>';
+    document.getElementById('obSkipBtn').textContent = 'Skip';
+  }
+}
+
+function obNext() {
+  if (obCurrentStep === 2) {
+    // Validate name
+    var name = document.getElementById('ob-name').value.trim();
+    if (!name) { document.getElementById('ob-name').focus(); return; }
+  }
+  if (obCurrentStep < obTotalSteps) {
+    obGoTo(obCurrentStep + 1);
+    // Personalise step 4 title
+    if (obCurrentStep === obTotalSteps) {
+      var name = document.getElementById('ob-name').value.trim();
+      var title = document.getElementById('ob-ready-title');
+      if (name && title) title.textContent = "You're all set, " + name.split(' ')[0] + '!';
+    }
+  } else {
+    // Last step — save profile + start tour
+    obSaveProfile();
+    document.getElementById('obOverlay').classList.add('hidden');
+    startTour();
+  }
+}
+
+function skipOnboarding() {
+  obSaveProfile();
+  document.getElementById('obOverlay').classList.add('hidden');
+}
+
+function obSaveProfile() {
+  var name = (document.getElementById('ob-name').value||'').trim();
+  var org  = (document.getElementById('ob-org').value||'').trim();
+  localStorage.setItem('evd_onboarded', '1');
+  localStorage.setItem('evd_user_name', name);
+  localStorage.setItem('evd_user_org',  org);
+  localStorage.setItem('evd_user_role', obSelectedRole);
+  localStorage.setItem('evd_user_mode', obSelectedMode);
+  // Apply view-only mode if selected
+  if (obSelectedMode === 'view') applyViewMode();
+}
+
+function selectRole(el) {
+  document.querySelectorAll('.ob-role-btn').forEach(function(b){ b.classList.remove('selected'); });
+  el.classList.add('selected');
+  obSelectedRole = el.dataset.role;
+}
+
+function selectMode(el) {
+  document.querySelectorAll('.ob-mode-card').forEach(function(b){ b.classList.remove('selected'); });
+  el.classList.add('selected');
+  obSelectedMode = el.dataset.mode;
+}
+
+function applyViewMode() {
+  // Hide add/edit controls for view-only users
+  var mode = localStorage.getItem('evd_user_mode') || 'manage';
+  if (mode === 'view') {
+    var style = document.createElement('style');
+    style.id = 'view-mode-style';
+    style.textContent = '.btn-add{display:none!important}.btn.btn-primary{display:none!important}';
+    document.head.appendChild(style);
+  } else {
+    var existing = document.getElementById('view-mode-style');
+    if (existing) existing.remove();
+  }
+}
+
+/* ═══════════════════════════════════════════
+   FEATURE TOUR
+═══════════════════════════════════════════ */
+var tourSteps = [
+  { target: '.sidebar-nav',         side: 'right',
+    title: '🗂️ Navigation',
+    body:  'Everything lives here — from the Portfolio Dashboard to Document Register, AI Co-Pilot, BoQ Wizard and more. Click any item to switch views.' },
+  { target: '#pg-dashboard',        side: 'top',
+    title: '📊 Portfolio Dashboard',
+    body:  'Your command centre. Live KPI cards, project status distribution, budget utilisation chart, and progress rings for every active project.' },
+  { target: '.proj-card',           side: 'top',
+    title: '🃏 Project Cards',
+    body:  'Click any card to open the KPI panel — CPI, SPI, safety scores, and more. Hit "Full Details" for a deep-dive with charts and milestone tracking.' },
+  { target: '#doc-nav-group',       side: 'right',
+    title: '📁 Document Register',
+    body:  'Every drawing, spec, contract and submittal — organised by category. Click to expand the 12 document categories in this sidebar.' },
+  { target: '.ai-fab',              side: 'left',
+    title: '🤖 AI Co-Pilot',
+    body:  'Ask anything about your projects in plain English. "What are the critical risks on PAU Hostel?" or "Summarise budget status across all sites."' },
+  { target: '#themeToggle',         side: 'bottom',
+    title: '🌙 Theme Toggle',
+    body:  'Switch between dark and light mode. All charts re-render instantly to match your preference.' },
+  { target: '#tourBtn',             side: 'left',
+    title: '❓ Need a reminder?',
+    body:  'Click this button any time to restart this tour. You\'re all set \u2014 welcome aboard!' },
+];
+
+var tourCurrentStep = 0;
+
+function startTour() {
+  tourCurrentStep = 0;
+  document.getElementById('tourBackdrop').classList.add('active');
+  showTourStep(0);
+}
+
+function showTourStep(idx) {
+  if (idx >= tourSteps.length) { endTour(); return; }
+  var step = tourSteps[idx];
+  var target = document.querySelector(step.target);
+  if (!target) { tourNext(); return; }
+
+  var rect = target.getBoundingClientRect();
+  var pad = 8;
+  var hole = document.getElementById('tourHole');
+  hole.style.display = 'block';
+  hole.style.left   = (rect.left - pad) + 'px';
+  hole.style.top    = (rect.top  - pad) + 'px';
+  hole.style.width  = (rect.width  + pad*2) + 'px';
+  hole.style.height = (rect.height + pad*2) + 'px';
+
+  // Position tooltip
+  var tt = document.getElementById('tourTooltip');
+  tt.style.display = 'block';
+  document.getElementById('tourTitle').textContent = step.title;
+  document.getElementById('tourBody').textContent  = step.body;
+  document.getElementById('tourCounter').textContent = (idx+1) + ' of ' + tourSteps.length;
+
+  var ttW = 280, ttH = 140;
+  var vw = window.innerWidth, vh = window.innerHeight;
+  var left, top;
+  if (step.side === 'right') {
+    left = rect.right + 16;
+    top  = rect.top + rect.height/2 - ttH/2;
+  } else if (step.side === 'left') {
+    left = rect.left - ttW - 16;
+    top  = rect.top + rect.height/2 - ttH/2;
+  } else if (step.side === 'bottom') {
+    left = rect.left + rect.width/2 - ttW/2;
+    top  = rect.bottom + 14;
+  } else {
+    left = rect.left + rect.width/2 - ttW/2;
+    top  = rect.top - ttH - 14;
+  }
+  // Clamp to viewport
+  left = Math.max(12, Math.min(left, vw - ttW - 12));
+  top  = Math.max(12, Math.min(top,  vh - ttH - 12));
+  tt.style.left = left + 'px';
+  tt.style.top  = top  + 'px';
+
+  // Last step button
+  var nextBtn = document.getElementById('tourNextBtn');
+  nextBtn.textContent = idx === tourSteps.length - 1 ? 'Finish 🎉' : 'Next →';
+
+  // Scroll target into view
+  target.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+function tourNext() {
+  tourCurrentStep++;
+  showTourStep(tourCurrentStep);
+}
+
+function endTour() {
+  document.getElementById('tourBackdrop').classList.remove('active');
+  document.getElementById('tourHole').style.display    = 'none';
+  document.getElementById('tourTooltip').style.display = 'none';
+}
+
 </script>
 
 <!-- ── PROJECT KPI DRAWER ── -->
@@ -6361,6 +6957,114 @@ function buildExportRows() {
     <button class="btn btn-ghost" style="flex:1" id="pkdNavBtn">📊 Full Details</button>
   </div>
 </div>
+
+
+<!-- ═══════════════════ ONBOARDING WIZARD ═══════════════════ -->
+<div class="ob-overlay hidden" id="obOverlay">
+  <div class="ob-card">
+    <div class="ob-progress"><div class="ob-progress-fill" id="obProgressFill" style="width:0%"></div></div>
+    <div class="ob-body">
+
+      <!-- Step 1: Welcome -->
+      <div class="ob-step active" id="ob-step-1">
+        <span class="ob-icon">🏗️</span>
+        <div class="ob-title">Welcome to the EVD PM Dashboard</div>
+        <div class="ob-sub">A single command centre for every project — budgets, schedules, risks, documents, and real-time KPIs. Let's get you set up in under a minute.</div>
+        <div class="ob-features">
+          <div class="ob-feature"><div class="ob-feature-icon">📊</div><div class="ob-feature-text"><strong>Live Portfolio Overview</strong>Real-time progress, spend, and risk across all active projects</div></div>
+          <div class="ob-feature"><div class="ob-feature-icon">📁</div><div class="ob-feature-text"><strong>Document Register</strong>Every drawing, spec, contract and submittal — tracked and searchable</div></div>
+          <div class="ob-feature"><div class="ob-feature-icon">🤖</div><div class="ob-feature-text"><strong>AI Co-Pilot</strong>Ask questions about any project and get instant, data-backed answers</div></div>
+        </div>
+      </div>
+
+      <!-- Step 2: Who are you? -->
+      <div class="ob-step" id="ob-step-2">
+        <span class="ob-icon">👤</span>
+        <div class="ob-title">Tell us about yourself</div>
+        <div class="ob-sub">We'll personalise your experience based on your role.</div>
+        <div class="ob-field">
+          <label>Your Name</label>
+          <input type="text" id="ob-name" placeholder="e.g. Amaka Okafor" autocomplete="name">
+        </div>
+        <div class="ob-field">
+          <label>Organisation</label>
+          <input type="text" id="ob-org" placeholder="e.g. Pan Atlantic University" autocomplete="organization">
+        </div>
+        <div class="ob-field"><label>Your Role</label></div>
+        <div class="ob-role-grid">
+          <div class="ob-role-btn" data-role="Client / Stakeholder" onclick="selectRole(this)"><span class="role-icon">🏢</span><span class="role-lbl">Client / Stakeholder</span></div>
+          <div class="ob-role-btn" data-role="Project Manager" onclick="selectRole(this)"><span class="role-icon">📋</span><span class="role-lbl">Project Manager</span></div>
+          <div class="ob-role-btn" data-role="Director / Executive" onclick="selectRole(this)"><span class="role-icon">👔</span><span class="role-lbl">Director / Executive</span></div>
+          <div class="ob-role-btn" data-role="Site / Technical" onclick="selectRole(this)"><span class="role-icon">🦺</span><span class="role-lbl">Site / Technical</span></div>
+        </div>
+      </div>
+
+      <!-- Step 3: View mode -->
+      <div class="ob-step" id="ob-step-3">
+        <span class="ob-icon">⚙️</span>
+        <div class="ob-title">How will you use the dashboard?</div>
+        <div class="ob-sub">This sets your default experience. You can always change it later.</div>
+        <div class="ob-mode-grid">
+          <div class="ob-mode-card" data-mode="view" onclick="selectMode(this)">
+            <span class="mode-icon">👁️</span>
+            <div class="mode-lbl">View & Monitor</div>
+            <div class="mode-sub">Review progress, read reports, and track KPIs across projects</div>
+          </div>
+          <div class="ob-mode-card" data-mode="manage" onclick="selectMode(this)">
+            <span class="mode-icon">✏️</span>
+            <div class="mode-lbl">Manage Projects</div>
+            <div class="mode-sub">Add projects, log risks, upload documents, and edit data</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4: Ready -->
+      <div class="ob-step" id="ob-step-4">
+        <span class="ob-icon">🚀</span>
+        <div class="ob-title" id="ob-ready-title">You're all set!</div>
+        <div class="ob-sub" id="ob-ready-sub">The dashboard is loaded with live project data. Click "Start Tour" for a 60-second walkthrough of the key features, or jump straight in.</div>
+        <div class="ob-features">
+          <div class="ob-feature"><div class="ob-feature-icon">💡</div><div class="ob-feature-text"><strong>Tip: Click any project card</strong>Opens a KPI panel with CPI, SPI, safety scores and a full detail view with charts</div></div>
+          <div class="ob-feature"><div class="ob-feature-icon">🌙</div><div class="ob-feature-text"><strong>Dark / Light mode</strong>Toggle the theme using the 🌙 button in the top-right at any time</div></div>
+          <div class="ob-feature"><div class="ob-feature-icon">❓</div><div class="ob-feature-text"><strong>Re-start the tour anytime</strong>Hit the ❓ button in the bottom-right corner of the screen</div></div>
+        </div>
+      </div>
+
+    </div><!-- /ob-body -->
+    <div class="ob-footer">
+      <div class="ob-dots">
+        <div class="ob-dot active" id="dot-1"></div>
+        <div class="ob-dot" id="dot-2"></div>
+        <div class="ob-dot" id="dot-3"></div>
+        <div class="ob-dot" id="dot-4"></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="ob-skip" id="obSkipBtn" onclick="skipOnboarding()">Skip</button>
+        <button class="ob-next" id="obNextBtn" onclick="obNext()">
+          Get Started <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ TOUR SPOTLIGHT ═══════════════════ -->
+<div class="tour-backdrop" id="tourBackdrop" onclick="endTour()"></div>
+<div class="tour-hole" id="tourHole" style="display:none"></div>
+<div class="tour-tooltip" id="tourTooltip" style="display:none">
+  <div class="tour-tooltip-title" id="tourTitle"></div>
+  <div class="tour-tooltip-body" id="tourBody"></div>
+  <div class="tour-tooltip-footer">
+    <div style="display:flex;flex-direction:column;gap:2px">
+      <div class="tour-step-counter" id="tourCounter"></div>
+      <button class="tour-skip-btn" onclick="endTour()">Skip tour</button>
+    </div>
+    <button class="tour-next-btn" id="tourNextBtn" onclick="tourNext()">Next →</button>
+  </div>
+</div>
+
+<!-- Tour trigger -->
+<button id="tourBtn" onclick="startTour()" title="Feature tour">❓</button>
 
 </body>
 </html>
