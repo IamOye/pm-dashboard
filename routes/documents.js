@@ -26,11 +26,12 @@ module.exports = function(upload) {
 
       for (const file of req.files) {
         const id = uuidv4();
-        db.prepare(`INSERT INTO documents (id, project_id, name, original_name, category, file_path, file_size, mime_type, pmbok_stage, description)
-          VALUES (?,?,?,?,?,?,?,?,?,?)`)
+        const now = new Date().toISOString();
+        db.prepare(`INSERT INTO documents (id, project_id, name, original_name, category, file_path, file_size, mime_type, pmbok_stage, description, uploaded_at)
+          VALUES (?,?,?,?,?,?,?,?,?,?,?)`)
           .run(id, project_id||null, file.originalname, file.originalname, category||'General',
                '/uploads/' + file.filename, file.size, file.mimetype,
-               pmbok_stage ? parseInt(pmbok_stage) : null, description||'');
+               pmbok_stage ? parseInt(pmbok_stage) : null, description||'', now);
         inserted.push({ id, name: file.originalname, size: file.size, path: '/uploads/' + file.filename });
       }
       res.json({ uploaded: inserted });

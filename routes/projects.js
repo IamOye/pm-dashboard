@@ -64,8 +64,9 @@ router.post('/', (req, res) => {
     } = req.body;
     if (!name) return res.status(400).json({ error: 'Project name required' });
 
-    db.prepare(`INSERT INTO projects (id, name, type, description, sponsor, client, pm_name, start_date, end_date, budget, currency, location)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`).run(id, name, type||'General', description||'', sponsor||'', client||'', pm_name||'', start_date||'', end_date||'', budget||0, currency||'USD', location||'');
+    const now = new Date().toISOString();
+    db.prepare(`INSERT INTO projects (id, name, type, description, sponsor, client, pm_name, start_date, end_date, budget, currency, location, created_at, updated_at)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(id, name, type||'General', description||'', sponsor||'', client||'', pm_name||'', start_date||'', end_date||'', budget||0, currency||'USD', location||'', now, now);
 
     res.json({ id, name });
   } catch (e) {
