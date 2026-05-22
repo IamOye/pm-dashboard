@@ -33,7 +33,10 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .wizard-layout{display:flex;flex:1;overflow:hidden;height:calc(100vh - 60px)}
 
 /* ─── Sidebar stages ─── */
-.stages-sidebar{width:280px;background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;flex-shrink:0;padding:20px 0}
+.stages-sidebar{width:280px;background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;flex-shrink:0;padding:20px 0;transition:width .2s ease,padding .2s ease}
+.stages-sidebar.collapsed{width:0;padding:0;overflow:hidden;border-right:none}
+.sidebar-toggle{background:none;border:none;cursor:pointer;color:var(--text-secondary);font-size:18px;padding:4px 8px;border-radius:6px;line-height:1;display:flex;align-items:center;justify-content:center}
+.sidebar-toggle:hover{background:var(--border);color:var(--text)}
 .stages-group{margin-bottom:4px}
 .stages-group-label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);padding:8px 20px 4px}
 .stage-item{display:flex;align-items:center;gap:10px;padding:9px 16px 9px 20px;cursor:pointer;border-left:3px solid transparent;transition:all .15s;position:relative}
@@ -180,7 +183,8 @@ select option{background:var(--surface2)}
 
 <!-- ═══ TOPBAR ═══ -->
 <header class="topbar">
-  <div class="topbar-logo">EVD PM</div>
+  <button class="sidebar-toggle" id="sidebar-toggle-btn" onclick="toggleSidebar()" title="Toggle sidebar">&#9776;</button>
+  <div class="topbar-logo">PM</div>
   <div class="topbar-sep"></div>
   <div>
     <div class="topbar-title" id="wiz-project-name">New Project Setup</div>
@@ -340,6 +344,27 @@ function loadProjectState() {
     })
     .catch(function(){ renderStage(1); });
 }
+
+// ═══════════════════════════════════════════════════════════
+// SIDEBAR TOGGLE
+// ═══════════════════════════════════════════════════════════
+function toggleSidebar() {
+  var sb = document.getElementById('stages-sidebar');
+  var btn = document.getElementById('sidebar-toggle-btn');
+  if (!sb) return;
+  var collapsed = sb.classList.toggle('collapsed');
+  btn.title = collapsed ? 'Show sidebar' : 'Hide sidebar';
+  localStorage.setItem('wiz_sidebar_collapsed', collapsed ? '1' : '0');
+}
+(function() {
+  // Restore sidebar state on load
+  if (localStorage.getItem('wiz_sidebar_collapsed') === '1') {
+    var sb = document.getElementById('stages-sidebar');
+    var btn = document.getElementById('sidebar-toggle-btn');
+    if (sb) sb.classList.add('collapsed');
+    if (btn) btn.title = 'Show sidebar';
+  }
+})();
 
 // ═══════════════════════════════════════════════════════════
 // NAVIGATION
