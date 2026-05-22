@@ -1,0 +1,1500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Setup Wizard — PMBOK 7 Guided Setup</title>
+<style>
+/* ─── Design tokens ─── */
+:root{
+  --bg:#0f1117;--surface:#1a1d27;--surface2:#22263a;--surface3:#2a2e44;
+  --border:#2e3248;--border2:#3d4260;
+  --text:#e8eaf0;--text2:#9099b5;--text3:#5a6285;
+  --accent:#4f8ef7;--accent2:#6ea6ff;
+  --green:#22c55e;--amber:#f59e0b;--red:#ef4444;--purple:#a855f7;
+  --radius:12px;--radius-sm:8px;
+  --shadow:0 4px 24px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+
+/* ─── Topbar ─── */
+.topbar{display:flex;align-items:center;gap:16px;padding:0 28px;height:60px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;flex-shrink:0}
+.topbar-logo{font-size:18px;font-weight:700;letter-spacing:-.5px;color:var(--accent);flex-shrink:0}
+.topbar-sep{width:1px;height:24px;background:var(--border)}
+.topbar-title{font-size:14px;font-weight:600;color:var(--text)}
+.topbar-sub{font-size:12px;color:var(--text2)}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+.progress-bar-wrap{width:200px;height:6px;background:var(--surface3);border-radius:99px;overflow:hidden}
+.progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--purple));border-radius:99px;transition:width .4s ease}
+.progress-pct{font-size:12px;font-weight:600;color:var(--accent);min-width:38px;text-align:right}
+
+/* ─── Main layout ─── */
+.wizard-layout{display:flex;flex:1;overflow:hidden;height:calc(100vh - 60px)}
+
+/* ─── Sidebar stages ─── */
+.stages-sidebar{width:280px;background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;flex-shrink:0;padding:20px 0}
+.stages-group{margin-bottom:4px}
+.stages-group-label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);padding:8px 20px 4px}
+.stage-item{display:flex;align-items:center;gap:10px;padding:9px 16px 9px 20px;cursor:pointer;border-left:3px solid transparent;transition:all .15s;position:relative}
+.stage-item:hover{background:var(--surface2)}
+.stage-item.active{background:rgba(79,142,247,.1);border-left-color:var(--accent)}
+.stage-item.completed .stage-num{background:var(--green);color:#fff}
+.stage-item.active .stage-num{background:var(--accent);color:#fff}
+.stage-item.locked{opacity:.45;cursor:not-allowed}
+.stage-num{width:24px;height:24px;border-radius:50%;background:var(--surface3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--text2);flex-shrink:0;transition:all .2s}
+.stage-item.completed .stage-num::before{content:'✓';font-size:13px}
+.stage-name{font-size:13px;line-height:1.3}
+.stage-name .sub{font-size:11px;color:var(--text3);margin-top:1px}
+.stage-tag{margin-left:auto;font-size:10px;font-weight:600;padding:2px 7px;border-radius:99px;background:var(--surface3);color:var(--text3)}
+.stage-tag.done{background:rgba(34,197,94,.15);color:var(--green)}
+
+/* ─── Content area ─── */
+.wizard-content{flex:1;overflow-y:auto;padding:32px 40px;max-width:900px;margin:0 auto;width:100%}
+
+.stage-header{margin-bottom:28px}
+.stage-header .pmbok-group{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.stage-header h2{font-size:26px;font-weight:700;color:var(--text);line-height:1.2}
+.stage-header .desc{font-size:14px;color:var(--text2);margin-top:6px;line-height:1.6}
+.stage-header .deliverable{display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:12px;font-weight:600;color:var(--amber);background:rgba(245,158,11,.1);padding:5px 12px;border-radius:99px}
+
+/* ─── Guidance box ─── */
+.guidance{background:rgba(79,142,247,.07);border:1px solid rgba(79,142,247,.2);border-radius:var(--radius);padding:14px 18px;margin-bottom:24px;font-size:13px;color:var(--text2);line-height:1.6}
+.guidance strong{color:var(--accent2);display:block;margin-bottom:4px;font-size:13px}
+
+/* ─── Form elements ─── */
+.form-section{margin-bottom:28px}
+.form-section h4{font-size:13px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-grid.cols3{grid-template-columns:1fr 1fr 1fr}
+.form-grid.full{grid-template-columns:1fr}
+.form-field{display:flex;flex-direction:column;gap:5px}
+.form-field label{font-size:12px;font-weight:600;color:var(--text2)}
+.form-field .hint{font-size:11px;color:var(--text3);margin-top:2px}
+input[type=text],input[type=email],input[type=number],input[type=date],
+input[type=tel],select,textarea{
+  background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:9px 12px;color:var(--text);font-size:13px;outline:none;width:100%;
+  transition:border-color .15s;font-family:inherit}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,142,247,.12)}
+textarea{resize:vertical;min-height:80px}
+select option{background:var(--surface2)}
+
+/* ─── Inline row (for lists like stakeholders) ─── */
+.row-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;margin-bottom:10px;position:relative}
+.row-card .row-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.row-card .row-grid.g4{grid-template-columns:1fr 1fr 1fr 1fr}
+.row-card .row-grid.g5{grid-template-columns:2fr 1fr 1fr 1fr 1fr}
+.row-del{position:absolute;top:10px;right:10px;width:26px;height:26px;border-radius:50%;background:rgba(239,68,68,.15);border:none;color:var(--red);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center}
+.row-del:hover{background:rgba(239,68,68,.3)}
+.btn-add-row{display:flex;align-items:center;gap:6px;padding:8px 16px;background:transparent;border:1px dashed var(--border2);border-radius:var(--radius-sm);color:var(--text2);cursor:pointer;font-size:13px;width:100%;justify-content:center;transition:all .15s;margin-top:4px}
+.btn-add-row:hover{border-color:var(--accent);color:var(--accent);background:rgba(79,142,247,.05)}
+
+/* ─── WBS Builder ─── */
+.wbs-tree{margin-bottom:12px}
+.wbs-node{position:relative}
+.wbs-node-row{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:6px;transition:border-color .15s}
+.wbs-node-row:hover{border-color:var(--border2)}
+.wbs-node-row.level1{border-left:3px solid var(--accent);margin-left:0}
+.wbs-node-row.level2{border-left:3px solid var(--purple);margin-left:28px}
+.wbs-node-row.level3{border-left:3px solid var(--green);margin-left:56px}
+.wbs-code{font-size:11px;font-weight:700;color:var(--accent);min-width:50px}
+.wbs-name-input{flex:1;background:transparent;border:none;color:var(--text);font-size:13px;outline:none;font-family:inherit}
+.wbs-name-input:focus{border-bottom:1px solid var(--accent)}
+.wbs-btn{width:24px;height:24px;border-radius:4px;background:transparent;border:1px solid var(--border);color:var(--text3);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.wbs-btn:hover{background:var(--surface3)}
+
+/* ─── Risk matrix ─── */
+.risk-matrix{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-bottom:16px}
+.risk-cell{height:36px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff}
+.risk-axis-label{font-size:10px;color:var(--text3);text-align:center;padding:2px}
+
+/* ─── Upload zone ─── */
+.upload-zone{border:2px dashed var(--border2);border-radius:var(--radius);padding:28px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:16px}
+.upload-zone:hover,.upload-zone.drag-over{border-color:var(--accent);background:rgba(79,142,247,.05)}
+.upload-zone svg{margin-bottom:10px;color:var(--text3)}
+.upload-zone .uz-title{font-size:14px;font-weight:600;color:var(--text2);margin-bottom:4px}
+.upload-zone .uz-sub{font-size:12px;color:var(--text3)}
+.upload-zone input[type=file]{display:none}
+.file-list{display:flex;flex-direction:column;gap:8px}
+.file-item{display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px}
+.file-icon{font-size:20px;flex-shrink:0}
+.file-info{flex:1}
+.file-info .fname{font-size:13px;font-weight:600}
+.file-info .fsize{font-size:11px;color:var(--text3)}
+.file-del{width:26px;height:26px;border-radius:50%;background:rgba(239,68,68,.15);border:none;color:var(--red);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+/* ─── Navigation footer ─── */
+.wizard-footer{display:flex;align-items:center;justify-content:space-between;padding:16px 40px;background:var(--surface);border-top:1px solid var(--border);flex-shrink:0}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 20px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .15s;text-decoration:none}
+.btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--text2)}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent2);transform:translateY(-1px);box-shadow:0 4px 16px rgba(79,142,247,.35)}
+.btn-success{background:var(--green);color:#fff}
+.btn-success:hover{filter:brightness(1.1)}
+.btn-sm{padding:6px 14px;font-size:12px}
+.footer-stage-info{font-size:12px;color:var(--text3)}
+.footer-stage-info strong{color:var(--text)}
+
+/* ─── Badge / tag ─── */
+.badge{display:inline-block;padding:3px 9px;border-radius:99px;font-size:11px;font-weight:600}
+.badge-green{background:rgba(34,197,94,.15);color:var(--green)}
+.badge-amber{background:rgba(245,158,11,.15);color:var(--amber)}
+.badge-red{background:rgba(239,68,68,.15);color:var(--red)}
+.badge-blue{background:rgba(79,142,247,.15);color:var(--accent2)}
+.badge-purple{background:rgba(168,85,247,.15);color:var(--purple)}
+
+/* ─── Summary/review cards ─── */
+.summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+.summary-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.summary-card .s-label{font-size:11px;color:var(--text3);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+.summary-card .s-value{font-size:20px;font-weight:700;color:var(--text)}
+.summary-card .s-sub{font-size:11px;color:var(--text2);margin-top:3px}
+
+/* ─── Kickoff screen ─── */
+.kickoff-hero{text-align:center;padding:40px 20px}
+.kickoff-hero .k-icon{font-size:64px;margin-bottom:16px}
+.kickoff-hero h2{font-size:32px;font-weight:800;margin-bottom:10px}
+.kickoff-hero p{font-size:15px;color:var(--text2);max-width:500px;margin:0 auto 24px}
+.checklist{text-align:left;max-width:480px;margin:0 auto}
+.checklist-item{display:flex;align-items:center;gap:12px;padding:12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px}
+.checklist-item .ci-icon{width:28px;height:28px;border-radius:50%;background:rgba(34,197,94,.15);color:var(--green);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.checklist-item .ci-text{font-size:13px}
+.checklist-item .ci-badge{margin-left:auto}
+
+/* ─── Validation errors ─── */
+.field-error{font-size:11px;color:var(--red);margin-top:3px}
+.input-error{border-color:var(--red)!important}
+
+/* ─── Responsive ─── */
+@media(max-width:768px){
+  .stages-sidebar{display:none}
+  .wizard-content{padding:20px}
+  .form-grid{grid-template-columns:1fr}
+  .summary-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ TOPBAR ═══ -->
+<header class="topbar">
+  <div class="topbar-logo">EVD PM</div>
+  <div class="topbar-sep"></div>
+  <div>
+    <div class="topbar-title" id="wiz-project-name">New Project Setup</div>
+    <div class="topbar-sub">PMBOK 7 Guided Project Initialisation</div>
+  </div>
+  <div class="topbar-right">
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="wiz-progress-bar" style="width:0%"></div>
+    </div>
+    <div class="progress-pct" id="wiz-progress-pct">0%</div>
+    <a href="/" class="btn btn-ghost btn-sm" style="text-decoration:none">← Dashboard</a>
+  </div>
+</header>
+
+<!-- ═══ LAYOUT ═══ -->
+<div class="wizard-layout">
+
+  <!-- SIDEBAR -->
+  <nav class="stages-sidebar" id="stages-sidebar">
+    <div class="stages-group">
+      <div class="stages-group-label">Initiating</div>
+      <div class="stage-item" data-stage="1" onclick="goToStage(1)">
+        <div class="stage-num">1</div>
+        <div class="stage-name">Project Identification<div class="sub">Name, type, objectives</div></div>
+        <div class="stage-tag" id="st-tag-1">—</div>
+      </div>
+      <div class="stage-item locked" data-stage="2" onclick="goToStage(2)">
+        <div class="stage-num">2</div>
+        <div class="stage-name">Project Charter<div class="sub">Scope, constraints, authority</div></div>
+        <div class="stage-tag" id="st-tag-2">—</div>
+      </div>
+      <div class="stage-item locked" data-stage="3" onclick="goToStage(3)">
+        <div class="stage-num">3</div>
+        <div class="stage-name">Stakeholder Register<div class="sub">Identify, classify, engage</div></div>
+        <div class="stage-tag" id="st-tag-3">—</div>
+      </div>
+    </div>
+    <div class="stages-group">
+      <div class="stages-group-label">Planning</div>
+      <div class="stage-item locked" data-stage="4" onclick="goToStage(4)">
+        <div class="stage-num">4</div>
+        <div class="stage-name">Scope Management<div class="sub">Deliverables, exclusions, WBS</div></div>
+        <div class="stage-tag" id="st-tag-4">—</div>
+      </div>
+      <div class="stage-item locked" data-stage="5" onclick="goToStage(5)">
+        <div class="stage-num">5</div>
+        <div class="stage-name">Schedule Management<div class="sub">Milestones & timeline</div></div>
+        <div class="stage-tag" id="st-tag-5">—</div>
+      </div>
+      <div class="stage-item locked" data-stage="6" onclick="goToStage(6)">
+        <div class="stage-num">6</div>
+        <div class="stage-name">Cost Management<div class="sub">Budget baseline & estimates</div></div>
+        <div class="stage-tag" id="st-tag-6">—</div>
+      </div>
+      <div class="stage-item locked" data-stage="7" onclick="goToStage(7)">
+        <div class="stage-num">7</div>
+        <div class="stage-name">Risk Management<div class="sub">Identify, assess, respond</div></div>
+        <div class="stage-tag" id="st-tag-7">—</div>
+      </div>
+      <div class="stage-item locked" data-stage="8" onclick="goToStage(8)">
+        <div class="stage-num">8</div>
+        <div class="stage-name">Resource Management<div class="sub">Team, RACI, allocation</div></div>
+        <div class="stage-tag" id="st-tag-8">—</div>
+      </div>
+      <div class="stage-item locked" data-stage="9" onclick="goToStage(9)">
+        <div class="stage-num">9</div>
+        <div class="stage-name">Communications Plan<div class="sub">Who, what, when, how</div></div>
+        <div class="stage-tag" id="st-tag-9">—</div>
+      </div>
+      <div class="stage-item locked" data-stage="10" onclick="goToStage(10)">
+        <div class="stage-num">10</div>
+        <div class="stage-name">Quality Management<div class="sub">Standards, metrics, QA/QC</div></div>
+        <div class="stage-tag" id="st-tag-10">—</div>
+      </div>
+      <div class="stage-item locked" data-stage="11" onclick="goToStage(11)">
+        <div class="stage-num">11</div>
+        <div class="stage-name">Procurement Management<div class="sub">Vendors, contracts, procurement</div></div>
+        <div class="stage-tag" id="st-tag-11">—</div>
+      </div>
+    </div>
+    <div class="stages-group">
+      <div class="stages-group-label">Executing</div>
+      <div class="stage-item locked" data-stage="12" onclick="goToStage(12)">
+        <div class="stage-num">12</div>
+        <div class="stage-name">Execution Kickoff<div class="sub">Launch your project</div></div>
+        <div class="stage-tag" id="st-tag-12">—</div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- CONTENT -->
+  <main class="wizard-content" id="wizard-content">
+    <!-- Injected by renderStage() -->
+  </main>
+</div>
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="wizard-footer">
+  <div class="footer-stage-info">
+    Stage <strong id="ftr-stage-cur">1</strong> of <strong>12</strong> &nbsp;·&nbsp;
+    <span id="ftr-stage-name">Project Identification</span>
+  </div>
+  <div style="display:flex;gap:10px">
+    <button class="btn btn-ghost" id="btn-back" onclick="prevStage()" style="display:none">← Back</button>
+    <button class="btn btn-primary" id="btn-next" onclick="nextStage()">Continue →</button>
+  </div>
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+var currentStage = 1;
+var maxUnlocked = 1;
+var projectId = null;
+var stageData = {};   // stageData[n] = {data, completed}
+var uploadedFiles = {}; // uploadedFiles[stageNum] = [file objects]
+
+var STAGES = [
+  null, // 0-indexed placeholder
+  { name:'Project Identification',   group:'Initiating', deliverable:'Project Brief',           num:1 },
+  { name:'Project Charter',          group:'Initiating', deliverable:'Project Charter',          num:2 },
+  { name:'Stakeholder Register',     group:'Initiating', deliverable:'Stakeholder Register',     num:3 },
+  { name:'Scope Management',         group:'Planning',   deliverable:'Scope Statement + WBS',    num:4 },
+  { name:'Schedule Management',      group:'Planning',   deliverable:'Schedule Baseline',        num:5 },
+  { name:'Cost Management',          group:'Planning',   deliverable:'Cost Baseline',            num:6 },
+  { name:'Risk Management',          group:'Planning',   deliverable:'Risk Register',            num:7 },
+  { name:'Resource Management',      group:'Planning',   deliverable:'Resource Plan + RACI',     num:8 },
+  { name:'Communications Plan',      group:'Planning',   deliverable:'Communications Matrix',    num:9 },
+  { name:'Quality Management',       group:'Planning',   deliverable:'Quality Management Plan', num:10 },
+  { name:'Procurement Management',   group:'Planning',   deliverable:'Procurement Plan',        num:11 },
+  { name:'Execution Kickoff',        group:'Executing',  deliverable:'Project Dashboard',       num:12 },
+];
+
+// Check for existing project in URL
+(function(){
+  var params = new URLSearchParams(window.location.search);
+  projectId = params.get('project') || null;
+  if (projectId) {
+    loadProjectState();
+  } else {
+    renderStage(1);
+  }
+})();
+
+function loadProjectState() {
+  fetch('/api/pmbok/project/' + projectId)
+    .then(function(r){ return r.json(); })
+    .then(function(stages){
+      stages.forEach(function(s){
+        stageData[s.stage_num] = { data: JSON.parse(s.data || '{}'), completed: !!s.completed };
+        if (s.completed) maxUnlocked = Math.max(maxUnlocked, s.stage_num + 1);
+      });
+      maxUnlocked = Math.min(maxUnlocked, 12);
+      updateSidebar();
+      renderStage(currentStage);
+    })
+    .catch(function(){ renderStage(1); });
+}
+
+// ═══════════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════════
+function goToStage(n) {
+  if (n > maxUnlocked) return;
+  saveCurrentStageData();
+  currentStage = n;
+  renderStage(n);
+  updateSidebar();
+}
+
+function prevStage() {
+  if (currentStage > 1) goToStage(currentStage - 1);
+}
+
+function nextStage() {
+  if (!validateStage(currentStage)) return;
+  saveAndAdvance(currentStage);
+}
+
+function saveAndAdvance(n) {
+  var data = collectStageData(n);
+  stageData[n] = { data: data, completed: true };
+
+  if (!projectId && n === 1) {
+    // Create project first
+    createProject(data, function(id){
+      projectId = id;
+      saveStage(n, data, true, function(){
+        applyStageToProject(n, data, function(){
+          if (n < 12) {
+            maxUnlocked = Math.max(maxUnlocked, n + 1);
+            goToStage(n + 1);
+          }
+        });
+      });
+    });
+  } else {
+    saveStage(n, data, true, function(){
+      applyStageToProject(n, data, function(){
+        if (n < 12) {
+          maxUnlocked = Math.max(maxUnlocked, n + 1);
+          goToStage(n + 1);
+        }
+      });
+    });
+  }
+}
+
+function createProject(data, cb) {
+  fetch('/api/projects', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name: data.name || 'New Project',
+      type: data.type || 'General',
+      description: data.description || ''
+    })
+  }).then(function(r){ return r.json(); })
+    .then(function(res){ cb(res.id); })
+    .catch(function(){ cb('local-' + Date.now()); });
+}
+
+function saveStage(n, data, completed, cb) {
+  if (!projectId) { if(cb) cb(); return; }
+  fetch('/api/pmbok/project/' + projectId + '/stage/' + n, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ data: data, completed: completed })
+  }).then(function(){ if(cb) cb(); }).catch(function(){ if(cb) cb(); });
+}
+
+function applyStageToProject(n, data, cb) {
+  var keyMap = {1:'initiation',2:'charter',3:'stakeholders',4:'scope',5:'schedule',
+                6:'cost',7:'risk',8:'resources',9:'communications',10:'quality',11:'procurement'};
+  var key = keyMap[n];
+  if (!key || !projectId) { if(cb) cb(); return; }
+  fetch('/api/pmbok/project/' + projectId + '/apply/' + key, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ data: data })
+  }).then(function(){ if(cb) cb(); }).catch(function(){ if(cb) cb(); });
+}
+
+function saveCurrentStageData() {
+  if (currentStage > 0) {
+    var data = collectStageData(currentStage);
+    stageData[currentStage] = stageData[currentStage] || {};
+    stageData[currentStage].data = data;
+    if (projectId) saveStage(currentStage, data, stageData[currentStage].completed || false);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// SIDEBAR UPDATE
+// ═══════════════════════════════════════════════════════════
+function updateSidebar() {
+  for (var i = 1; i <= 12; i++) {
+    var el = document.querySelector('[data-stage="' + i + '"]');
+    var tag = document.getElementById('st-tag-' + i);
+    if (!el) continue;
+    el.classList.remove('active', 'completed', 'locked');
+    if (i === currentStage) el.classList.add('active');
+    else if (stageData[i] && stageData[i].completed) el.classList.add('completed');
+    else if (i > maxUnlocked) el.classList.add('locked');
+
+    if (tag) {
+      if (stageData[i] && stageData[i].completed) {
+        tag.textContent = '✓'; tag.className = 'stage-tag done';
+      } else if (i <= maxUnlocked) {
+        tag.textContent = i === currentStage ? '▶' : '○'; tag.className = 'stage-tag';
+      } else {
+        tag.textContent = '🔒'; tag.className = 'stage-tag';
+      }
+    }
+    // Update stage num display
+    var numEl = el.querySelector('.stage-num');
+    if (numEl) {
+      if (stageData[i] && stageData[i].completed) numEl.innerHTML = '✓';
+      else numEl.textContent = i;
+    }
+  }
+
+  // Update progress
+  var done = Object.keys(stageData).filter(function(k){ return stageData[k] && stageData[k].completed; }).length;
+  var pct = Math.round((done / 12) * 100);
+  var bar = document.getElementById('wiz-progress-bar');
+  var pctEl = document.getElementById('wiz-progress-pct');
+  if (bar) bar.style.width = pct + '%';
+  if (pctEl) pctEl.textContent = pct + '%';
+
+  // Footer
+  var ftrCur = document.getElementById('ftr-stage-cur');
+  var ftrName = document.getElementById('ftr-stage-name');
+  var btnBack = document.getElementById('btn-back');
+  if (ftrCur) ftrCur.textContent = currentStage;
+  if (ftrName) ftrName.textContent = STAGES[currentStage] ? STAGES[currentStage].name : '';
+  if (btnBack) btnBack.style.display = currentStage > 1 ? '' : 'none';
+
+  // Project name in topbar
+  var sd1 = stageData[1] && stageData[1].data;
+  var topName = document.getElementById('wiz-project-name');
+  if (topName && sd1 && sd1.name) topName.textContent = sd1.name + ' — Setup';
+}
+
+// ═══════════════════════════════════════════════════════════
+// STAGE RENDERER
+// ═══════════════════════════════════════════════════════════
+function renderStage(n) {
+  var content = document.getElementById('wizard-content');
+  if (!content) return;
+  var d = stageData[n] ? stageData[n].data : {};
+
+  switch(n) {
+    case 1:  content.innerHTML = renderStage1(d); break;
+    case 2:  content.innerHTML = renderStage2(d); break;
+    case 3:  content.innerHTML = renderStage3(d); break;
+    case 4:  content.innerHTML = renderStage4(d); break;
+    case 5:  content.innerHTML = renderStage5(d); break;
+    case 6:  content.innerHTML = renderStage6(d); break;
+    case 7:  content.innerHTML = renderStage7(d); break;
+    case 8:  content.innerHTML = renderStage8(d); break;
+    case 9:  content.innerHTML = renderStage9(d); break;
+    case 10: content.innerHTML = renderStage10(d); break;
+    case 11: content.innerHTML = renderStage11(d); break;
+    case 12: content.innerHTML = renderStage12(); break;
+    default: content.innerHTML = '<p>Stage not found</p>';
+  }
+  content.scrollTop = 0;
+  updateSidebar();
+  attachUploadListeners(n);
+  // Init dynamic list handlers
+  attachListHandlers();
+}
+
+// ─── STAGE 1: Project Identification ───
+function renderStage1(d) {
+  return stageShell('Project Identification','Initiating','Project Brief',
+    'This is the foundation of your project. Answer these questions clearly — they will be used to auto-populate your Project Charter, Risk Register, and all downstream planning documents.',
+    '<div class="form-section">'
+    + '<h4>Basic Information</h4>'
+    + '<div class="form-grid">'
+    + field('Project Name *', 'text', 'f-name', d.name||'', 'e.g. PAU Science Faculty Hostel Construction')
+    + field('Project Type *', 'select', 'f-type', d.type||'', '', ['Construction','IT / Software','Infrastructure','Engineering','Consulting','Research & Development','Event / Programme','Other'])
+    + '</div>'
+    + '<div class="form-grid full" style="margin-top:12px">'
+    + field('Project Description *', 'textarea', 'f-description', d.description||'', 'What is being built or delivered? What problem does this project solve?')
+    + '</div>'
+    + '</div>'
+    + '<div class="form-section">'
+    + '<h4>Key People</h4>'
+    + '<div class="form-grid cols3">'
+    + field('Project Manager *', 'text', 'f-pm-name', d.pm_name||'', 'Full name')
+    + field('Project Sponsor', 'text', 'f-sponsor', d.sponsor||'', 'Who authorises the project?')
+    + field('Client / Customer', 'text', 'f-client', d.client||'', 'Organisation or individual')
+    + '</div>'
+    + '</div>'
+    + '<div class="form-section">'
+    + '<h4>Project Parameters</h4>'
+    + '<div class="form-grid">'
+    + field('Planned Start Date', 'date', 'f-start-date', d.start_date||'')
+    + field('Planned End Date', 'date', 'f-end-date', d.end_date||'')
+    + field('Approximate Budget', 'number', 'f-budget', d.budget||'', 'Total budget in project currency')
+    + field('Currency', 'select', 'f-currency', d.currency||'USD', '', ['USD','GBP','EUR','NGN','ZAR','GHS','KES','AED','CAD','AUD'])
+    + '</div>'
+    + '</div>'
+    + '<div class="form-section">'
+    + '<h4>Business Objectives <span style="font-weight:400;color:var(--text3)">(list 3–5 SMART objectives)</span></h4>'
+    + field('', 'textarea', 'f-objectives', d.objectives||'', '1. ...\n2. ...\n3. ...', null, 100)
+    + '</div>'
+    + uploadZone(1, 'Upload any existing briefs, concept drawings, or RFPs')
+    + '</div></div>'
+  );
+}
+
+// ─── STAGE 2: Project Charter ───
+function renderStage2(d) {
+  var sd1 = stageData[1] ? stageData[1].data : {};
+  return stageShell('Project Charter','Initiating','Project Charter',
+    'The Project Charter formally authorises the project. It documents the business case, high-level scope, key constraints, assumptions, and authority. Based on your Stage 1 inputs — fill in the details below.',
+    '<div class="guidance"><strong>💡 Guidance</strong>Project: <strong>' + (sd1.name||'—') + '</strong> &nbsp;|&nbsp; PM: <strong>' + (sd1.pm_name||'—') + '</strong> &nbsp;|&nbsp; Budget: <strong>' + fmtCurrency(sd1.budget, sd1.currency) + '</strong></div>'
+    + '<div class="form-section">'
+    + '<h4>Business Case</h4>'
+    + field('Business Justification *', 'textarea', 'f-business-case', d.business_case||'', 'Why is this project needed? What problem, opportunity or strategic objective does it address?', null, 90)
+    + '</div>'
+    + '<div class="form-section">'
+    + '<h4>Project Boundaries</h4>'
+    + '<div class="form-grid">'
+    + field('High-Level In-Scope *', 'textarea', 'f-in-scope', d.in_scope||'', 'What major deliverables and work are INCLUDED?', null, 80)
+    + field('Explicitly Out-of-Scope', 'textarea', 'f-out-scope', d.out_scope||'', 'What is excluded to prevent scope creep?', null, 80)
+    + '</div>'
+    + '</div>'
+    + '<div class="form-section">'
+    + '<h4>Constraints &amp; Assumptions</h4>'
+    + '<div class="form-grid">'
+    + field('Key Constraints', 'textarea', 'f-constraints', d.constraints||'', 'Time, cost, quality, resources, regulatory, site access...', null, 80)
+    + field('Key Assumptions', 'textarea', 'f-assumptions', d.assumptions||'', 'What must be true for this project to succeed?', null, 80)
+    + '</div>'
+    + '</div>'
+    + '<div class="form-section">'
+    + '<h4>Authority &amp; Success Criteria</h4>'
+    + '<div class="form-grid">'
+    + field('Approval Authority', 'text', 'f-authority', d.authority||sd1.sponsor||'', 'Who signs off on the charter?')
+    + field('Project Level', 'select', 'f-level', d.level||'', '', ['Programme Level','Portfolio Level','Department Level','Division Level','Organisation Level'])
+    + '</div>'
+    + '<div class="form-grid full" style="margin-top:12px">'
+    + field('Success Criteria *', 'textarea', 'f-success-criteria', d.success_criteria||'', 'How will you know this project succeeded? Measurable outcomes...', null, 80)
+    + '</div>'
+    + '</div>'
+    + uploadZone(2, 'Upload signed charter, board minutes, or authorisation documents')
+    + '</div></div>'
+  );
+}
+
+// ─── STAGE 3: Stakeholder Register ───
+function renderStage3(d) {
+  var stakeholders = d.stakeholders || [];
+  if (stakeholders.length === 0) stakeholders = [{ name:'', organisation:'', role:'', power:'High', interest:'High', engagement:'Supportive' }];
+  var rows = stakeholders.map(function(s, i){ return renderStakeholderRow(s, i); }).join('');
+  return stageShell('Stakeholder Register','Initiating','Stakeholder Register',
+    'Identify everyone who has an interest in or influence over this project. Understanding your stakeholders early enables targeted communication and proactive engagement management.',
+    '<div class="guidance"><strong>💡 Guidance</strong>Start with internal stakeholders (sponsor, team leads) then external (client, regulators, neighbours, suppliers). Classify each by Power and Interest to prioritise engagement.</div>'
+    + '<div class="form-section">'
+    + '<h4>Stakeholders <span id="sh-count" style="font-weight:400;color:var(--text3)">(' + stakeholders.length + ')</span></h4>'
+    + '<div class="row-card" style="background:var(--surface3);margin-bottom:8px;padding:8px 14px">'
+    + '<div class="row-grid g5" style="font-size:11px;font-weight:700;color:var(--text3)">'
+    + '<div>NAME / ORGANISATION</div><div>ROLE</div><div>POWER</div><div>INTEREST</div><div>ENGAGEMENT</div>'
+    + '</div></div>'
+    + '<div id="stakeholder-list">' + rows + '</div>'
+    + '<button class="btn-add-row" onclick="addStakeholderRow()">+ Add Stakeholder</button>'
+    + '</div>'
+    + uploadZone(3, 'Upload org charts, distribution lists, or stakeholder mapping documents')
+    + '</div></div>'
+  );
+}
+
+function renderStakeholderRow(s, i) {
+  return '<div class="row-card" data-sh-row="' + i + '">'
+    + '<button class="row-del" onclick="deleteRow(this,\'stakeholder-list\')">✕</button>'
+    + '<div class="row-grid g5">'
+    + '<div><input type="text" class="sh-name" placeholder="Name" value="' + esc(s.name) + '">'
+      + '<input type="text" class="sh-org" placeholder="Organisation" value="' + esc(s.organisation||'') + '" style="margin-top:5px"></div>'
+    + '<div><input type="text" class="sh-role" placeholder="e.g. Client Rep" value="' + esc(s.role) + '"></div>'
+    + '<div>' + sel('sh-power', ['High','Low'], s.power) + '</div>'
+    + '<div>' + sel('sh-interest', ['High','Low'], s.interest) + '</div>'
+    + '<div>' + sel('sh-engagement', ['Supportive','Neutral','Resistant','Unknown'], s.engagement||'Neutral') + '</div>'
+    + '</div></div>';
+}
+
+function addStakeholderRow() {
+  var list = document.getElementById('stakeholder-list');
+  var idx = list.querySelectorAll('[data-sh-row]').length;
+  var div = document.createElement('div');
+  div.innerHTML = renderStakeholderRow({ name:'', organisation:'', role:'', power:'High', interest:'High', engagement:'Neutral' }, idx);
+  list.appendChild(div.firstChild);
+  updateStakeholderCount();
+}
+
+function updateStakeholderCount() {
+  var el = document.getElementById('sh-count');
+  if (el) {
+    var cnt = document.querySelectorAll('#stakeholder-list [data-sh-row]').length;
+    el.textContent = '(' + cnt + ')';
+  }
+}
+
+// ─── STAGE 4: Scope Management ───
+function renderStage4(d) {
+  var wbs = d.wbs || [
+    { code:'1', name:'Project Management', level:1, parent_id:null },
+    { code:'2', name:'Deliverable 1', level:1, parent_id:null },
+    { code:'3', name:'Deliverable 2', level:1, parent_id:null },
+  ];
+  return stageShell('Scope Management','Planning','Scope Statement + WBS',
+    'Define WHAT the project will deliver. A clear scope statement prevents scope creep. The Work Breakdown Structure (WBS) decomposes the project into manageable work packages.',
+    '<div class="guidance"><strong>💡 PMBOK Guidance</strong>The WBS organises and defines the total scope of the project. Each descending level represents an increasingly detailed definition of the project work. Level 1 = major deliverables, Level 2 = work packages, Level 3 = activities.</div>'
+    + '<div class="form-section">'
+    + '<h4>Scope Statement</h4>'
+    + '<div class="form-grid">'
+    + field('Project Scope Statement *', 'textarea', 'f-scope-statement', d.scope_statement||'', 'Detailed description of the project and product scope. Include what will be produced, the criteria for acceptance, and any known limitations.', null, 90)
+    + field('Deliverables List *', 'textarea', 'f-deliverables', d.deliverables||'', 'List each major deliverable:\n1. ...\n2. ...\n3. ...', null, 90)
+    + '</div>'
+    + '</div>'
+    + '<div class="form-section">'
+    + '<h4>Work Breakdown Structure (WBS)</h4>'
+    + '<div style="display:flex;gap:10px;margin-bottom:12px">'
+    + '<button class="btn btn-ghost btn-sm" onclick="addWbsNode(1)">+ Level 1</button>'
+    + '<button class="btn btn-ghost btn-sm" onclick="addWbsNode(2)">+ Level 2</button>'
+    + '<button class="btn btn-ghost btn-sm" onclick="addWbsNode(3)">+ Level 3</button>'
+    + '</div>'
+    + '<div class="wbs-tree" id="wbs-tree">'
+    + wbs.map(function(w){ return renderWbsNode(w); }).join('')
+    + '</div>'
+    + '</div>'
+    + uploadZone(4, 'Upload scope documents, drawings, specifications, or BOQ')
+    + '</div></div>'
+  );
+}
+
+function renderWbsNode(w) {
+  var cls = 'wbs-node-row level' + (w.level||1);
+  return '<div class="wbs-node">'
+    + '<div class="' + cls + '" data-wbs-level="' + w.level + '">'
+    + '<span class="wbs-code">' + esc(w.code||'') + '</span>'
+    + '<input type="text" class="wbs-name-input" value="' + esc(w.name||'') + '" placeholder="Work package name">'
+    + '<button class="wbs-btn" title="Delete" onclick="this.closest(\'.wbs-node\').remove()">✕</button>'
+    + '</div></div>';
+}
+
+var wbsCounter = 10;
+function addWbsNode(level) {
+  wbsCounter++;
+  var prefix = level === 1 ? '' : (level === 2 ? '  ' : '    ');
+  var tree = document.getElementById('wbs-tree');
+  if (!tree) return;
+  var div = document.createElement('div');
+  div.innerHTML = renderWbsNode({ code: String(wbsCounter), name:'', level:level });
+  tree.appendChild(div.firstChild);
+  var inp = tree.lastChild.querySelector('.wbs-name-input');
+  if (inp) inp.focus();
+}
+
+// ─── STAGE 5: Schedule Management ───
+function renderStage5(d) {
+  var milestones = d.milestones || [
+    { title:'Project Kickoff', due_date:'', deliverable:'Signed Charter' },
+    { title:'Design Approval', due_date:'', deliverable:'Approved Drawings' },
+    { title:'Construction Start', due_date:'', deliverable:'Site Mobilisation' },
+    { title:'Practical Completion', due_date:'', deliverable:'Completion Certificate' },
+  ];
+  var rows = milestones.map(function(m, i){ return renderMilestoneRow(m, i); }).join('');
+  return stageShell('Schedule Management','Planning','Schedule Baseline',
+    'Define key milestones, the project timeline, and scheduling approach. You\'ll manage the detailed schedule in the main dashboard — here we establish the baseline.',
+    '<div class="form-section">'
+    + '<h4>Project Timeline</h4>'
+    + '<div class="form-grid cols3">'
+    + field('Start Date *', 'date', 'f-sched-start', d.start_date || (stageData[1]&&stageData[1].data&&stageData[1].data.start_date)||'')
+    + field('End Date *', 'date', 'f-sched-end', d.end_date || (stageData[1]&&stageData[1].data&&stageData[1].data.end_date)||'')
+    + field('Schedule Methodology', 'select', 'f-sched-method', d.schedule_method||'', '', ['Critical Path Method (CPM)','Gantt Chart (Bar Chart)','Agile Sprints','Phased Delivery','Linear Schedule','Rolling Wave Planning'])
+    + '</div>'
+    + '</div>'
+    + '<div class="form-section">'
+    + '<h4>Key Milestones</h4>'
+    + '<div class="row-card" style="background:var(--surface3);padding:8px 14px">'
+    + '<div class="row-grid" style="font-size:11px;font-weight:700;color:var(--text3)">'
+    + '<div>MILESTONE</div><div>TARGET DATE</div><div>KEY DELIVERABLE</div>'
+    + '</div></div>'
+    + '<div id="milestone-list">' + rows + '</div>'
+    + '<button class="btn-add-row" onclick="addMilestoneRow()">+ Add Milestone</button>'
+    + '</div>'
+    + uploadZone(5, 'Upload Gantt charts, programme of works, or schedule documents')
+    + '</div></div>'
+  );
+}
+
+function renderMilestoneRow(m, i) {
+  return '<div class="row-card" data-ms-row="' + i + '">'
+    + '<button class="row-del" onclick="deleteRow(this,\'milestone-list\')">✕</button>'
+    + '<div class="row-grid">'
+    + '<div><input type="text" class="ms-title" placeholder="Milestone name" value="' + esc(m.title||'') + '"></div>'
+    + '<div><input type="date" class="ms-date" value="' + esc(m.due_date||'') + '"></div>'
+    + '<div><input type="text" class="ms-deliverable" placeholder="Key deliverable" value="' + esc(m.deliverable||'') + '"></div>'
+    + '</div></div>';
+}
+
+function addMilestoneRow() {
+  var list = document.getElementById('milestone-list');
+  if (!list) return;
+  var idx = list.querySelectorAll('[data-ms-row]').length;
+  var div = document.createElement('div');
+  div.innerHTML = renderMilestoneRow({ title:'', due_date:'', deliverable:'' }, idx);
+  list.appendChild(div.firstChild);
+}
+
+// ─── STAGE 6: Cost Management ───
+function renderStage6(d) {
+  var items = d.budget_items || [
+    { category:'Labour', description:'Project Team', estimated:0 },
+    { category:'Materials', description:'Construction Materials', estimated:0 },
+    { category:'Equipment', description:'Plant & Equipment', estimated:0 },
+    { category:'Consultants', description:'Professional Fees', estimated:0 },
+    { category:'Contingency', description:'Contingency Reserve (10%)', estimated:0 },
+  ];
+  var rows = items.map(function(b, i){ return renderBudgetRow(b, i); }).join('');
+  var total = items.reduce(function(sum, b){ return sum + (parseFloat(b.estimated)||0); }, 0);
+  return stageShell('Cost Management','Planning','Cost Baseline',
+    'Estimate costs for each work package or budget category. The cost baseline is the approved version of the budget used to measure performance.',
+    '<div class="form-section">'
+    + '<h4>Budget Breakdown</h4>'
+    + '<div class="row-card" style="background:var(--surface3);padding:8px 14px">'
+    + '<div class="row-grid cols3" style="font-size:11px;font-weight:700;color:var(--text3)">'
+    + '<div>CATEGORY</div><div>DESCRIPTION</div><div>ESTIMATED COST</div>'
+    + '</div></div>'
+    + '<div id="budget-list">' + rows + '</div>'
+    + '<button class="btn-add-row" onclick="addBudgetRow()">+ Add Line Item</button>'
+    + '<div style="display:flex;justify-content:flex-end;margin-top:14px">'
+    + '<div style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:12px 20px;text-align:right">'
+    + '<div style="font-size:11px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.5px">Total Estimated Budget</div>'
+    + '<div id="budget-total" style="font-size:24px;font-weight:800;color:var(--accent);margin-top:4px">' + fmtCurrency(total, stageData[1]&&stageData[1].data&&stageData[1].data.currency) + '</div>'
+    + '</div></div>'
+    + '</div>'
+    + '<div class="form-section">'
+    + '<h4>Reserves</h4>'
+    + '<div class="form-grid cols3">'
+    + field('Contingency Reserve (%)', 'number', 'f-contingency', d.contingency||10, 'For identified risks')
+    + field('Management Reserve (%)', 'number', 'f-management-reserve', d.management_reserve||5, 'For unknown risks')
+    + field('Cost Estimation Method', 'select', 'f-cost-method', d.cost_method||'', '', ['Bottom-Up Estimating','Analogous Estimating','Parametric Estimating','Three-Point Estimating','Expert Judgment'])
+    + '</div>'
+    + '</div>'
+    + uploadZone(6, 'Upload Bills of Quantities (BOQ), cost estimates, or quotes')
+    + '</div></div>'
+  );
+}
+
+function renderBudgetRow(b, i) {
+  return '<div class="row-card" data-budget-row="' + i + '">'
+    + '<button class="row-del" onclick="deleteRow(this,\'budget-list\');updateBudgetTotal()">✕</button>'
+    + '<div class="row-grid cols3">'
+    + '<div>' + sel('budget-cat', ['Labour','Materials','Equipment','Consultants','Subcontractors','Permits & Fees','IT & Technology','Contingency','Management Reserve','Other'], b.category||'Other') + '</div>'
+    + '<div><input type="text" class="budget-desc" placeholder="Description" value="' + esc(b.description||'') + '"></div>'
+    + '<div><input type="number" class="budget-est" placeholder="0.00" value="' + (b.estimated||0) + '" oninput="updateBudgetTotal()"></div>'
+    + '</div></div>';
+}
+
+function addBudgetRow() {
+  var list = document.getElementById('budget-list');
+  if (!list) return;
+  var idx = list.querySelectorAll('[data-budget-row]').length;
+  var div = document.createElement('div');
+  div.innerHTML = renderBudgetRow({ category:'Other', description:'', estimated:0 }, idx);
+  list.appendChild(div.firstChild);
+}
+
+function updateBudgetTotal() {
+  var total = 0;
+  document.querySelectorAll('.budget-est').forEach(function(el){ total += parseFloat(el.value)||0; });
+  var el = document.getElementById('budget-total');
+  if (el) el.textContent = fmtCurrency(total, stageData[1]&&stageData[1].data&&stageData[1].data.currency);
+}
+
+// ─── STAGE 7: Risk Management ───
+function renderStage7(d) {
+  var risks = d.risks || [
+    { title:'Scope Creep', category:'Scope', probability:3, impact:4, response:'Mitigate', mitigation:'Strict change control process', owner:'' },
+    { title:'Budget Overrun', category:'Cost', probability:3, impact:5, response:'Mitigate', mitigation:'Monthly EVM tracking, contingency reserve', owner:'' },
+    { title:'Key Resource Unavailability', category:'Resource', probability:2, impact:4, response:'Mitigate', mitigation:'Identify backup resources, succession plan', owner:'' },
+  ];
+  var rows = risks.map(function(r, i){ return renderRiskRow(r, i); }).join('');
+  return stageShell('Risk Management','Planning','Risk Register',
+    'Identify, analyse, and plan responses to project risks. The Risk Register is a living document — you\'ll update it throughout the project from the main dashboard.',
+    '<div class="guidance"><strong>💡 Risk Scoring</strong>Risk Score = Probability × Impact. Scores 1–4 = Low, 5–8 = Medium, 9–14 = High, 15–25 = Critical. Start with the most common risk categories for your project type.</div>'
+    + '<div class="form-section">'
+    + '<h4>Risk Register</h4>'
+    + '<div class="row-card" style="background:var(--surface3);padding:8px 14px">'
+    + '<div style="display:grid;grid-template-columns:2fr 1fr .5fr .5fr 1fr 2fr 1fr;gap:8px;font-size:11px;font-weight:700;color:var(--text3)">'
+    + '<div>RISK TITLE</div><div>CATEGORY</div><div>PROB.</div><div>IMPACT</div><div>RESPONSE</div><div>MITIGATION</div><div>OWNER</div>'
+    + '</div></div>'
+    + '<div id="risk-list">' + rows + '</div>'
+    + '<button class="btn-add-row" onclick="addRiskRow()">+ Add Risk</button>'
+    + '</div>'
+    + uploadZone(7, 'Upload risk assessment reports, HAZOP studies, or lessons learned')
+    + '</div></div>'
+  );
+}
+
+function renderRiskRow(r, i) {
+  var score = (r.probability||3) * (r.impact||3);
+  var sev = score >= 15 ? 'Critical' : score >= 9 ? 'High' : score >= 5 ? 'Medium' : 'Low';
+  var sevClass = score >= 15 ? 'badge-red' : score >= 9 ? 'badge-red' : score >= 5 ? 'badge-amber' : 'badge-green';
+  return '<div class="row-card" data-risk-row="' + i + '">'
+    + '<button class="row-del" onclick="deleteRow(this,\'risk-list\')">✕</button>'
+    + '<div style="display:grid;grid-template-columns:2fr 1fr .5fr .5fr 1fr 2fr 1fr;gap:8px;align-items:start">'
+    + '<div><input type="text" class="risk-title" placeholder="Risk title" value="' + esc(r.title||'') + '"></div>'
+    + '<div>' + sel('risk-cat', ['Scope','Schedule','Cost','Quality','Resource','Technical','External','Regulatory','Environmental','Safety','Other'], r.category||'Technical') + '</div>'
+    + '<div><input type="number" class="risk-prob" min="1" max="5" value="' + (r.probability||3) + '" oninput="updateRiskScore(this)" style="width:50px"></div>'
+    + '<div><input type="number" class="risk-impact" min="1" max="5" value="' + (r.impact||3) + '" oninput="updateRiskScore(this)" style="width:50px"></div>'
+    + '<div>' + sel('risk-resp', ['Avoid','Mitigate','Transfer','Accept','Escalate'], r.response||'Mitigate') + '</div>'
+    + '<div><input type="text" class="risk-mitigation" placeholder="Response action" value="' + esc(r.mitigation||'') + '"></div>'
+    + '<div><input type="text" class="risk-owner" placeholder="Owner" value="' + esc(r.owner||'') + '"></div>'
+    + '</div>'
+    + '<div style="display:flex;align-items:center;gap:8px;margin-top:8px">'
+    + '<span style="font-size:11px;color:var(--text3)">Score: </span>'
+    + '<span class="risk-score-display badge ' + sevClass + '">' + score + ' — ' + sev + '</span>'
+    + '</div>'
+    + '</div>';
+}
+
+function addRiskRow() {
+  var list = document.getElementById('risk-list');
+  if (!list) return;
+  var idx = list.querySelectorAll('[data-risk-row]').length;
+  var div = document.createElement('div');
+  div.innerHTML = renderRiskRow({ title:'', category:'Technical', probability:3, impact:3, response:'Mitigate', mitigation:'', owner:'' }, idx);
+  list.appendChild(div.firstChild);
+}
+
+function updateRiskScore(el) {
+  var card = el.closest('[data-risk-row]');
+  if (!card) return;
+  var p = parseInt(card.querySelector('.risk-prob').value)||3;
+  var i = parseInt(card.querySelector('.risk-impact').value)||3;
+  var score = p * i;
+  var sev = score >= 15 ? 'Critical' : score >= 9 ? 'High' : score >= 5 ? 'Medium' : 'Low';
+  var sevClass = score >= 15 ? 'badge-red' : score >= 9 ? 'badge-red' : score >= 5 ? 'badge-amber' : 'badge-green';
+  var disp = card.querySelector('.risk-score-display');
+  if (disp) { disp.textContent = score + ' — ' + sev; disp.className = 'risk-score-display badge ' + sevClass; }
+}
+
+// ─── STAGE 8: Resource Management ───
+function renderStage8(d) {
+  var team = d.team || [{ name:'', role:'Project Manager', email:'', allocation:100, is_external:false, skills:'' }];
+  var rows = team.map(function(t, i){ return renderTeamRow(t, i); }).join('');
+  return stageShell('Resource Management','Planning','Resource Plan + RACI',
+    'Identify the project team and their roles. Proper resource planning prevents overallocation and ensures the right people are available at the right time.',
+    '<div class="form-section">'
+    + '<h4>Project Team</h4>'
+    + '<div class="row-card" style="background:var(--surface3);padding:8px 14px">'
+    + '<div class="row-grid g5" style="font-size:11px;font-weight:700;color:var(--text3)">'
+    + '<div>NAME</div><div>ROLE / TITLE</div><div>EMAIL</div><div>ALLOCATION %</div><div>TYPE</div>'
+    + '</div></div>'
+    + '<div id="team-list">' + rows + '</div>'
+    + '<button class="btn-add-row" onclick="addTeamRow()">+ Add Team Member</button>'
+    + '</div>'
+    + '<div class="form-section">'
+    + '<h4>RACI Notes</h4>'
+    + field('RACI Summary', 'textarea', 'f-raci', d.raci||'', 'Responsible / Accountable / Consulted / Informed assignments for key deliverables. You can build a detailed RACI matrix in the project dashboard.', null, 80)
+    + '</div>'
+    + uploadZone(8, 'Upload team org charts, CVs, or resource availability matrices')
+    + '</div></div>'
+  );
+}
+
+function renderTeamRow(t, i) {
+  return '<div class="row-card" data-team-row="' + i + '">'
+    + '<button class="row-del" onclick="deleteRow(this,\'team-list\')">✕</button>'
+    + '<div class="row-grid g5">'
+    + '<div><input type="text" class="team-name" placeholder="Full name" value="' + esc(t.name||'') + '"></div>'
+    + '<div><input type="text" class="team-role" placeholder="e.g. Site Engineer" value="' + esc(t.role||'') + '"></div>'
+    + '<div><input type="email" class="team-email" placeholder="email@example.com" value="' + esc(t.email||'') + '"></div>'
+    + '<div><input type="number" class="team-alloc" min="0" max="100" value="' + (t.allocation||100) + '">%</div>'
+    + '<div>' + sel('team-type', ['Internal','External / Contractor','Consultant','Vendor'], t.is_external ? 'External / Contractor' : 'Internal') + '</div>'
+    + '</div></div>';
+}
+
+function addTeamRow() {
+  var list = document.getElementById('team-list');
+  if (!list) return;
+  var idx = list.querySelectorAll('[data-team-row]').length;
+  var div = document.createElement('div');
+  div.innerHTML = renderTeamRow({ name:'', role:'', email:'', allocation:100, is_external:false }, idx);
+  list.appendChild(div.firstChild);
+}
+
+// ─── STAGE 9: Communications Plan ───
+function renderStage9(d) {
+  var comms = d.comms || [
+    { stakeholder_name:'Project Sponsor', information:'Progress Report', frequency:'Monthly', method:'Email + Meeting', responsible:'' },
+    { stakeholder_name:'Client', information:'Status Update', frequency:'Bi-weekly', method:'Email', responsible:'' },
+    { stakeholder_name:'Project Team', information:'Progress Meeting', frequency:'Weekly', method:'Meeting', responsible:'' },
+  ];
+  var rows = comms.map(function(c, i){ return renderCommsRow(c, i); }).join('');
+  return stageShell('Communications Plan','Planning','Communications Matrix',
+    'Define who receives what information, when, and through what channel. Good communication planning prevents misunderstandings and keeps stakeholders appropriately informed.',
+    '<div class="form-section">'
+    + '<h4>Communications Matrix</h4>'
+    + '<div class="row-card" style="background:var(--surface3);padding:8px 14px">'
+    + '<div class="row-grid" style="display:grid;grid-template-columns:1fr 2fr 1fr 1fr 1fr;gap:8px;font-size:11px;font-weight:700;color:var(--text3)">'
+    + '<div>STAKEHOLDER</div><div>INFORMATION</div><div>FREQUENCY</div><div>METHOD</div><div>RESPONSIBLE</div>'
+    + '</div></div>'
+    + '<div id="comms-list">' + rows + '</div>'
+    + '<button class="btn-add-row" onclick="addCommsRow()">+ Add Communication</button>'
+    + '</div>'
+    + '<div class="form-section">'
+    + '<h4>Communication Tools &amp; Channels</h4>'
+    + field('Primary Communication Tools', 'textarea', 'f-comms-tools', d.comms_tools||'', 'e.g. Email (Outlook), Teams, WhatsApp groups, project site notice board, monthly steering committee meetings...', null, 70)
+    + '</div>'
+    + uploadZone(9, 'Upload stakeholder communication registers or meeting minute templates')
+    + '</div></div>'
+  );
+}
+
+function renderCommsRow(c, i) {
+  return '<div class="row-card" data-comms-row="' + i + '">'
+    + '<button class="row-del" onclick="deleteRow(this,\'comms-list\')">✕</button>'
+    + '<div style="display:grid;grid-template-columns:1fr 2fr 1fr 1fr 1fr;gap:8px">'
+    + '<div><input type="text" class="comms-stakeholder" placeholder="Stakeholder" value="' + esc(c.stakeholder_name||'') + '"></div>'
+    + '<div><input type="text" class="comms-info" placeholder="What information?" value="' + esc(c.information||'') + '"></div>'
+    + '<div>' + sel('comms-freq', ['Daily','Weekly','Bi-weekly','Monthly','Quarterly','Ad-hoc','On Milestone'], c.frequency||'Monthly') + '</div>'
+    + '<div>' + sel('comms-method', ['Email','Meeting','Report','Dashboard','Memo','Phone','Teams/Slack','Site Notice Board','Formal Letter'], c.method||'Email') + '</div>'
+    + '<div><input type="text" class="comms-resp" placeholder="Responsible party" value="' + esc(c.responsible||'') + '"></div>'
+    + '</div></div>';
+}
+
+function addCommsRow() {
+  var list = document.getElementById('comms-list');
+  if (!list) return;
+  var idx = list.querySelectorAll('[data-comms-row]').length;
+  var div = document.createElement('div');
+  div.innerHTML = renderCommsRow({ stakeholder_name:'', information:'', frequency:'Monthly', method:'Email', responsible:'' }, idx);
+  list.appendChild(div.firstChild);
+}
+
+// ─── STAGE 10: Quality Management ───
+function renderStage10(d) {
+  var quality = d.quality || [
+    { standard:'PMBOK Standards', metric:'Schedule Performance Index (SPI)', target:'>= 0.9', method:'Earned Value Analysis', responsible:'' },
+    { standard:'PMBOK Standards', metric:'Cost Performance Index (CPI)', target:'>= 0.95', method:'Earned Value Analysis', responsible:'' },
+  ];
+  var rows = quality.map(function(q, i){ return renderQualityRow(q, i); }).join('');
+  return stageShell('Quality Management','Planning','Quality Management Plan',
+    'Define the quality standards that apply, how quality will be measured, and who is responsible for QA and QC activities.',
+    '<div class="form-section">'
+    + '<h4>Applicable Standards &amp; Codes</h4>'
+    + field('Standards &amp; Regulatory Requirements', 'textarea', 'f-standards', d.standards||'', 'e.g. ISO 9001:2015, PMBOK 7th Ed, NEC4, FIDIC, BS EN ISO 19650, local building codes, environmental regulations...', null, 80)
+    + '</div>'
+    + '<div class="form-section">'
+    + '<h4>Quality Metrics</h4>'
+    + '<div class="row-card" style="background:var(--surface3);padding:8px 14px">'
+    + '<div style="display:grid;grid-template-columns:1fr 2fr 1fr 1fr 1fr;gap:8px;font-size:11px;font-weight:700;color:var(--text3)">'
+    + '<div>STANDARD</div><div>METRIC</div><div>TARGET</div><div>MEASUREMENT METHOD</div><div>RESPONSIBLE</div>'
+    + '</div></div>'
+    + '<div id="quality-list">' + rows + '</div>'
+    + '<button class="btn-add-row" onclick="addQualityRow()">+ Add Quality Metric</button>'
+    + '</div>'
+    + '<div class="form-section">'
+    + '<h4>QA / QC Approach</h4>'
+    + '<div class="form-grid">'
+    + field('Quality Assurance (QA) Plan', 'textarea', 'f-qa-plan', d.qa_plan||'', 'Processes to ensure quality standards are followed...', null, 70)
+    + field('Quality Control (QC) Plan', 'textarea', 'f-qc-plan', d.qc_plan||'', 'Inspection, testing, and verification activities...', null, 70)
+    + '</div>'
+    + '</div>'
+    + uploadZone(10, 'Upload quality plans, inspection checklists, or testing schedules')
+    + '</div></div>'
+  );
+}
+
+function renderQualityRow(q, i) {
+  return '<div class="row-card" data-quality-row="' + i + '">'
+    + '<button class="row-del" onclick="deleteRow(this,\'quality-list\')">✕</button>'
+    + '<div style="display:grid;grid-template-columns:1fr 2fr 1fr 1fr 1fr;gap:8px">'
+    + '<div><input type="text" class="qual-standard" placeholder="Standard / code" value="' + esc(q.standard||'') + '"></div>'
+    + '<div><input type="text" class="qual-metric" placeholder="Metric name" value="' + esc(q.metric||'') + '"></div>'
+    + '<div><input type="text" class="qual-target" placeholder="Target value" value="' + esc(q.target||'') + '"></div>'
+    + '<div><input type="text" class="qual-method" placeholder="Measurement method" value="' + esc(q.method||'') + '"></div>'
+    + '<div><input type="text" class="qual-resp" placeholder="Responsible" value="' + esc(q.responsible||'') + '"></div>'
+    + '</div></div>';
+}
+
+function addQualityRow() {
+  var list = document.getElementById('quality-list');
+  if (!list) return;
+  var idx = list.querySelectorAll('[data-quality-row]').length;
+  var div = document.createElement('div');
+  div.innerHTML = renderQualityRow({ standard:'', metric:'', target:'', method:'', responsible:'' }, idx);
+  list.appendChild(div.firstChild);
+}
+
+// ─── STAGE 11: Procurement Management ───
+function renderStage11(d) {
+  var items = d.procurement || [];
+  var rows = items.map(function(p, i){ return renderProcurementRow(p, i); }).join('');
+  return stageShell('Procurement Management','Planning','Procurement Plan',
+    'Identify what needs to be procured externally — materials, subcontractors, equipment, services. Define the procurement approach and contract types.',
+    '<div class="form-section">'
+    + '<h4>Procurement Strategy</h4>'
+    + '<div class="form-grid">'
+    + field('Procurement Strategy', 'select', 'f-proc-strategy', d.procurement_strategy||'', '', ['Competitive Tendering','Negotiated Contract','Single Source','Framework Agreement','Design & Build','EPC (Turnkey)','Build Operate Transfer (BOT)','Public Private Partnership (PPP)'])
+    + field('Procurement Lead', 'text', 'f-proc-lead', d.procurement_lead||'', 'Who manages procurement?')
+    + '</div>'
+    + '</div>'
+    + '<div class="form-section">'
+    + '<h4>Procurement Items Register</h4>'
+    + '<div class="row-card" style="background:var(--surface3);padding:8px 14px">'
+    + '<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:8px;font-size:11px;font-weight:700;color:var(--text3)">'
+    + '<div>DESCRIPTION</div><div>CATEGORY</div><div>CONTRACT TYPE</div><div>VENDOR (if known)</div><div>EST. COST</div>'
+    + '</div></div>'
+    + '<div id="procurement-list">' + rows + '</div>'
+    + '<button class="btn-add-row" onclick="addProcurementRow()">+ Add Item</button>'
+    + '</div>'
+    + uploadZone(11, 'Upload tender documents, supplier lists, or procurement schedules')
+    + '</div></div>'
+  );
+}
+
+function renderProcurementRow(p, i) {
+  return '<div class="row-card" data-proc-row="' + i + '">'
+    + '<button class="row-del" onclick="deleteRow(this,\'procurement-list\')">✕</button>'
+    + '<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:8px">'
+    + '<div><input type="text" class="proc-desc" placeholder="e.g. Structural Steel Supply" value="' + esc(p.description||'') + '"></div>'
+    + '<div>' + sel('proc-cat', ['Materials','Subcontractor','Equipment','Services','Consulting','Software','Other'], p.category||'Materials') + '</div>'
+    + '<div>' + sel('proc-contract', ['Fixed Price','Cost Plus','Time & Materials','Unit Price','Framework','Lump Sum'], p.contract_type||'Fixed Price') + '</div>'
+    + '<div><input type="text" class="proc-vendor" placeholder="Vendor name" value="' + esc(p.vendor||'') + '"></div>'
+    + '<div><input type="number" class="proc-cost" placeholder="0.00" value="' + (p.estimated_cost||0) + '"></div>'
+    + '</div></div>';
+}
+
+function addProcurementRow() {
+  var list = document.getElementById('procurement-list');
+  if (!list) return;
+  var idx = list.querySelectorAll('[data-proc-row]').length;
+  var div = document.createElement('div');
+  div.innerHTML = renderProcurementRow({ description:'', category:'Materials', contract_type:'Fixed Price', vendor:'', estimated_cost:0 }, idx);
+  list.appendChild(div.firstChild);
+}
+
+// ─── STAGE 12: Execution Kickoff ───
+function renderStage12() {
+  var sd1 = stageData[1] ? stageData[1].data : {};
+  var completedCount = 0;
+  for (var i=1; i<=11; i++) { if (stageData[i] && stageData[i].completed) completedCount++; }
+  var budgetTotal = 0;
+  if (stageData[6] && stageData[6].data && stageData[6].data.budget_items) {
+    stageData[6].data.budget_items.forEach(function(b){ budgetTotal += parseFloat(b.estimated)||0; });
+  }
+  var riskCount = (stageData[7] && stageData[7].data && stageData[7].data.risks) ? stageData[7].data.risks.length : 0;
+  var stakeCount = (stageData[3] && stageData[3].data && stageData[3].data.stakeholders) ? stageData[3].data.stakeholders.length : 0;
+  var mileCount = (stageData[5] && stageData[5].data && stageData[5].data.milestones) ? stageData[5].data.milestones.length : 0;
+
+  var checkItems = [
+    { icon:'✅', text:'Project Charter authorised', done: !!(stageData[2] && stageData[2].completed) },
+    { icon:'✅', text:'Stakeholder register complete (' + stakeCount + ' stakeholders)', done: stakeCount > 0 },
+    { icon:'✅', text:'Scope statement & WBS defined', done: !!(stageData[4] && stageData[4].completed) },
+    { icon:'✅', text:'Schedule baseline with ' + mileCount + ' milestones', done: mileCount > 0 },
+    { icon:'✅', text:'Cost baseline: ' + fmtCurrency(budgetTotal, sd1.currency), done: budgetTotal > 0 },
+    { icon:'✅', text:'Risk register: ' + riskCount + ' risks identified', done: riskCount > 0 },
+    { icon:'✅', text:'Resource plan & team defined', done: !!(stageData[8] && stageData[8].completed) },
+    { icon:'✅', text:'Communications plan established', done: !!(stageData[9] && stageData[9].completed) },
+    { icon:'✅', text:'Quality management plan created', done: !!(stageData[10] && stageData[10].completed) },
+    { icon:'✅', text:'Procurement plan documented', done: !!(stageData[11] && stageData[11].completed) },
+  ];
+
+  var checks = checkItems.map(function(c){
+    return '<div class="checklist-item">'
+      + '<div class="ci-icon" style="' + (c.done ? '' : 'background:rgba(245,158,11,.15);color:var(--amber)') + '">' + (c.done ? '✓' : '○') + '</div>'
+      + '<div class="ci-text">' + c.text + '</div>'
+      + '<div class="ci-badge"><span class="badge ' + (c.done ? 'badge-green' : 'badge-amber') + '">' + (c.done ? 'Done' : 'Pending') + '</span></div>'
+      + '</div>';
+  }).join('');
+
+  return '<div class="stage-header">'
+    + '<div class="pmbok-group">Executing</div>'
+    + '<h2>🚀 Ready to Launch</h2>'
+    + '<p class="desc">Your project has been set up to PMBOK standards. Review the checklist below, then open your project dashboard to begin execution.</p>'
+    + '</div>'
+    + '<div class="summary-grid">'
+    + '<div class="summary-card"><div class="s-label">Stages Completed</div><div class="s-value">' + completedCount + '/11</div><div class="s-sub">Planning documents</div></div>'
+    + '<div class="summary-card"><div class="s-label">Project Budget</div><div class="s-value">' + fmtCurrency(budgetTotal, sd1.currency) + '</div><div class="s-sub">Cost baseline</div></div>'
+    + '<div class="summary-card"><div class="s-label">Risks Identified</div><div class="s-value">' + riskCount + '</div><div class="s-sub">In risk register</div></div>'
+    + '</div>'
+    + '<h4 style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px">Planning Checklist</h4>'
+    + '<div class="checklist">' + checks + '</div>'
+    + '<div style="text-align:center;margin-top:32px">'
+    + '<a href="' + (projectId ? '/?project=' + projectId : '/') + '" class="btn btn-success" style="font-size:15px;padding:12px 32px;text-decoration:none">'
+    + '📊 Open Project Dashboard →'
+    + '</a>'
+    + '<div style="margin-top:12px;font-size:12px;color:var(--text3)">Your project data has been saved. All planning documents are accessible from the dashboard.</div>'
+    + '</div>';
+}
+
+// ═══════════════════════════════════════════════════════════
+// DATA COLLECTION
+// ═══════════════════════════════════════════════════════════
+function collectStageData(n) {
+  function val(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; }
+
+  switch(n) {
+    case 1: return {
+      name: val('f-name'), type: val('f-type'), description: val('f-description'),
+      pm_name: val('f-pm-name'), sponsor: val('f-sponsor'), client: val('f-client'),
+      start_date: val('f-start-date'), end_date: val('f-end-date'),
+      budget: val('f-budget'), currency: val('f-currency'), objectives: val('f-objectives')
+    };
+    case 2: return {
+      business_case: val('f-business-case'), in_scope: val('f-in-scope'), out_scope: val('f-out-scope'),
+      constraints: val('f-constraints'), assumptions: val('f-assumptions'),
+      authority: val('f-authority'), level: val('f-level'), success_criteria: val('f-success-criteria')
+    };
+    case 3: {
+      var shs = [];
+      document.querySelectorAll('#stakeholder-list [data-sh-row]').forEach(function(row){
+        shs.push({
+          name: row.querySelector('.sh-name') ? row.querySelector('.sh-name').value : '',
+          organisation: row.querySelector('.sh-org') ? row.querySelector('.sh-org').value : '',
+          role: row.querySelector('.sh-role') ? row.querySelector('.sh-role').value : '',
+          power: row.querySelector('.sh-power') ? row.querySelector('.sh-power').value : 'High',
+          interest: row.querySelector('.sh-interest') ? row.querySelector('.sh-interest').value : 'High',
+          engagement: row.querySelector('.sh-engagement') ? row.querySelector('.sh-engagement').value : 'Neutral',
+        });
+      });
+      return { stakeholders: shs.filter(function(s){ return s.name; }) };
+    }
+    case 4: {
+      var wbs = [];
+      document.querySelectorAll('#wbs-tree .wbs-node').forEach(function(node){
+        var row = node.querySelector('.wbs-node-row');
+        var level = parseInt(row ? row.dataset.wbsLevel : 1) || 1;
+        var code = node.querySelector('.wbs-code') ? node.querySelector('.wbs-code').textContent : '';
+        var name = node.querySelector('.wbs-name-input') ? node.querySelector('.wbs-name-input').value : '';
+        if (name.trim()) wbs.push({ code: code, name: name.trim(), level: level });
+      });
+      return { scope_statement: val('f-scope-statement'), deliverables: val('f-deliverables'), wbs: wbs };
+    }
+    case 5: {
+      var ms = [];
+      document.querySelectorAll('#milestone-list [data-ms-row]').forEach(function(row){
+        var t = row.querySelector('.ms-title') ? row.querySelector('.ms-title').value : '';
+        if (t.trim()) ms.push({
+          title: t.trim(),
+          due_date: row.querySelector('.ms-date') ? row.querySelector('.ms-date').value : '',
+          deliverable: row.querySelector('.ms-deliverable') ? row.querySelector('.ms-deliverable').value : ''
+        });
+      });
+      return { start_date: val('f-sched-start'), end_date: val('f-sched-end'), schedule_method: val('f-sched-method'), milestones: ms };
+    }
+    case 6: {
+      var bi = [];
+      document.querySelectorAll('#budget-list [data-budget-row]').forEach(function(row){
+        bi.push({
+          category: row.querySelector('.budget-cat') ? row.querySelector('.budget-cat').value : 'Other',
+          description: row.querySelector('.budget-desc') ? row.querySelector('.budget-desc').value : '',
+          estimated: parseFloat(row.querySelector('.budget-est') ? row.querySelector('.budget-est').value : 0) || 0
+        });
+      });
+      return { budget_items: bi, contingency: val('f-contingency'), management_reserve: val('f-management-reserve'), cost_method: val('f-cost-method') };
+    }
+    case 7: {
+      var risks = [];
+      document.querySelectorAll('#risk-list [data-risk-row]').forEach(function(row){
+        var t = row.querySelector('.risk-title') ? row.querySelector('.risk-title').value : '';
+        if (t.trim()) risks.push({
+          title: t.trim(),
+          category: row.querySelector('.risk-cat') ? row.querySelector('.risk-cat').value : 'Technical',
+          probability: parseInt(row.querySelector('.risk-prob') ? row.querySelector('.risk-prob').value : 3) || 3,
+          impact: parseInt(row.querySelector('.risk-impact') ? row.querySelector('.risk-impact').value : 3) || 3,
+          response: row.querySelector('.risk-resp') ? row.querySelector('.risk-resp').value : 'Mitigate',
+          mitigation: row.querySelector('.risk-mitigation') ? row.querySelector('.risk-mitigation').value : '',
+          owner: row.querySelector('.risk-owner') ? row.querySelector('.risk-owner').value : '',
+        });
+      });
+      return { risks: risks };
+    }
+    case 8: {
+      var team = [];
+      document.querySelectorAll('#team-list [data-team-row]').forEach(function(row){
+        var n2 = row.querySelector('.team-name') ? row.querySelector('.team-name').value : '';
+        if (n2.trim()) team.push({
+          name: n2.trim(),
+          role: row.querySelector('.team-role') ? row.querySelector('.team-role').value : '',
+          email: row.querySelector('.team-email') ? row.querySelector('.team-email').value : '',
+          allocation: parseInt(row.querySelector('.team-alloc') ? row.querySelector('.team-alloc').value : 100) || 100,
+          is_external: row.querySelector('.team-type') ? (row.querySelector('.team-type').value !== 'Internal') : false,
+        });
+      });
+      return { team: team, raci: val('f-raci') };
+    }
+    case 9: {
+      var comms = [];
+      document.querySelectorAll('#comms-list [data-comms-row]').forEach(function(row){
+        comms.push({
+          stakeholder_name: row.querySelector('.comms-stakeholder') ? row.querySelector('.comms-stakeholder').value : '',
+          information: row.querySelector('.comms-info') ? row.querySelector('.comms-info').value : '',
+          frequency: row.querySelector('.comms-freq') ? row.querySelector('.comms-freq').value : 'Monthly',
+          method: row.querySelector('.comms-method') ? row.querySelector('.comms-method').value : 'Email',
+          responsible: row.querySelector('.comms-resp') ? row.querySelector('.comms-resp').value : '',
+        });
+      });
+      return { comms: comms, comms_tools: val('f-comms-tools') };
+    }
+    case 10: {
+      var qual = [];
+      document.querySelectorAll('#quality-list [data-quality-row]').forEach(function(row){
+        qual.push({
+          standard: row.querySelector('.qual-standard') ? row.querySelector('.qual-standard').value : '',
+          metric: row.querySelector('.qual-metric') ? row.querySelector('.qual-metric').value : '',
+          target: row.querySelector('.qual-target') ? row.querySelector('.qual-target').value : '',
+          method: row.querySelector('.qual-method') ? row.querySelector('.qual-method').value : '',
+          responsible: row.querySelector('.qual-resp') ? row.querySelector('.qual-resp').value : '',
+        });
+      });
+      return { standards: val('f-standards'), quality: qual, qa_plan: val('f-qa-plan'), qc_plan: val('f-qc-plan') };
+    }
+    case 11: {
+      var proc = [];
+      document.querySelectorAll('#procurement-list [data-proc-row]').forEach(function(row){
+        proc.push({
+          description: row.querySelector('.proc-desc') ? row.querySelector('.proc-desc').value : '',
+          category: row.querySelector('.proc-cat') ? row.querySelector('.proc-cat').value : 'Materials',
+          contract_type: row.querySelector('.proc-contract') ? row.querySelector('.proc-contract').value : 'Fixed Price',
+          vendor: row.querySelector('.proc-vendor') ? row.querySelector('.proc-vendor').value : '',
+          estimated_cost: parseFloat(row.querySelector('.proc-cost') ? row.querySelector('.proc-cost').value : 0) || 0,
+        });
+      });
+      return { procurement_strategy: val('f-proc-strategy'), procurement_lead: val('f-proc-lead'), procurement: proc };
+    }
+    default: return {};
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// VALIDATION
+// ═══════════════════════════════════════════════════════════
+function validateStage(n) {
+  var d = collectStageData(n);
+  var errors = [];
+
+  if (n === 1) {
+    if (!d.name) errors.push('Project name is required');
+    if (!d.type) errors.push('Project type is required');
+    if (!d.description) errors.push('Project description is required');
+    if (!d.pm_name) errors.push('Project Manager name is required');
+  }
+  if (n === 2) {
+    if (!d.business_case) errors.push('Business case is required');
+    if (!d.in_scope) errors.push('In-scope items are required');
+    if (!d.success_criteria) errors.push('Success criteria are required');
+  }
+  if (n === 3) {
+    if (!d.stakeholders || d.stakeholders.length === 0) errors.push('Add at least one stakeholder');
+  }
+  if (n === 4) {
+    if (!d.scope_statement) errors.push('Scope statement is required');
+    if (!d.deliverables) errors.push('Deliverables list is required');
+  }
+  if (n === 5) {
+    if (!d.start_date || !d.end_date) errors.push('Start and end dates are required');
+    if (!d.milestones || d.milestones.length === 0) errors.push('Add at least one milestone');
+  }
+  if (n === 6) {
+    if (!d.budget_items || d.budget_items.length === 0) errors.push('Add at least one budget line item');
+  }
+  if (n === 7) {
+    if (!d.risks || d.risks.length === 0) errors.push('Add at least one risk');
+  }
+  if (n === 8) {
+    if (!d.team || d.team.length === 0) errors.push('Add at least one team member');
+  }
+
+  if (errors.length > 0) {
+    showValidationErrors(errors);
+    return false;
+  }
+  clearValidationErrors();
+  return true;
+}
+
+function showValidationErrors(errors) {
+  var existing = document.getElementById('validation-toast');
+  if (existing) existing.remove();
+  var toast = document.createElement('div');
+  toast.id = 'validation-toast';
+  toast.style.cssText = 'position:fixed;bottom:80px;right:24px;background:var(--red);color:#fff;padding:12px 18px;border-radius:var(--radius);font-size:13px;z-index:999;max-width:320px;box-shadow:var(--shadow)';
+  toast.innerHTML = '<strong>Please complete:</strong><br>' + errors.map(function(e){ return '• ' + e; }).join('<br>');
+  document.body.appendChild(toast);
+  setTimeout(function(){ toast.remove(); }, 4000);
+}
+
+function clearValidationErrors() {
+  var t = document.getElementById('validation-toast');
+  if (t) t.remove();
+}
+
+// ═══════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════
+function stageShell(name, group, deliverable, guidance, body) {
+  return '<div class="stage-header">'
+    + '<div class="pmbok-group">' + group + ' Process Group</div>'
+    + '<h2>' + name + '</h2>'
+    + '<p class="desc"></p>'
+    + '<div class="deliverable">📄 Output: ' + deliverable + '</div>'
+    + '</div>'
+    + '<div class="guidance"><strong>💡 ' + name + ' Guidance</strong>' + guidance + '</div>'
+    + body;
+}
+
+function field(label, type, id, value, placeholder, options, height) {
+  var h = '<div class="form-field">';
+  if (label) h += '<label for="' + id + '">' + label + '</label>';
+  if (type === 'select') {
+    h += '<select id="' + id + '">';
+    if (!value) h += '<option value="">— Select —</option>';
+    (options||[]).forEach(function(o){
+      h += '<option value="' + esc(o) + '"' + (o === value ? ' selected' : '') + '>' + esc(o) + '</option>';
+    });
+    h += '</select>';
+  } else if (type === 'textarea') {
+    h += '<textarea id="' + id + '" placeholder="' + esc(placeholder||'') + '" style="min-height:' + (height||80) + 'px">' + esc(value||'') + '</textarea>';
+  } else {
+    h += '<input type="' + type + '" id="' + id + '" value="' + esc(value||'') + '" placeholder="' + esc(placeholder||'') + '">';
+  }
+  h += '</div>';
+  return h;
+}
+
+function sel(cls, options, selected) {
+  var h = '<select class="' + cls + '">';
+  options.forEach(function(o){
+    h += '<option value="' + esc(o) + '"' + (o === selected ? ' selected' : '') + '>' + esc(o) + '</option>';
+  });
+  return h + '</select>';
+}
+
+function uploadZone(stageNum, hint) {
+  return '<div class="form-section">'
+    + '<h4>Document Upload <span style="font-weight:400;color:var(--text3)">(optional)</span></h4>'
+    + '<div class="upload-zone" id="uz-' + stageNum + '" onclick="document.getElementById(\'file-input-' + stageNum + '\').click()">'
+    + '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>'
+    + '<div class="uz-title">Drop files here or click to browse</div>'
+    + '<div class="uz-sub">' + hint + '</div>'
+    + '<div class="uz-sub" style="margin-top:4px">PDF, DOCX, XLSX, DWG, DXF, IFC, images up to 100MB</div>'
+    + '<input type="file" id="file-input-' + stageNum + '" multiple accept=".pdf,.docx,.doc,.xlsx,.xls,.pptx,.ppt,.png,.jpg,.jpeg,.dwg,.dxf,.ifc,.csv,.txt,.zip">'
+    + '</div>'
+    + '<div class="file-list" id="file-list-' + stageNum + '"></div>'
+    + '</div>';
+}
+
+function attachUploadListeners(stageNum) {
+  var input = document.getElementById('file-input-' + stageNum);
+  var zone = document.getElementById('uz-' + stageNum);
+  if (!input) return;
+  input.addEventListener('change', function(){ handleFiles(this.files, stageNum); });
+  if (zone) {
+    zone.addEventListener('dragover', function(e){ e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', function(){ zone.classList.remove('drag-over'); });
+    zone.addEventListener('drop', function(e){ e.preventDefault(); zone.classList.remove('drag-over'); handleFiles(e.dataTransfer.files, stageNum); });
+  }
+  // Show already-uploaded files
+  renderFileList(stageNum);
+}
+
+function handleFiles(files, stageNum) {
+  if (!uploadedFiles[stageNum]) uploadedFiles[stageNum] = [];
+  Array.from(files).forEach(function(file){
+    uploadedFiles[stageNum].push({ file: file, name: file.name, size: file.size, uploading: true });
+  });
+  renderFileList(stageNum);
+  uploadFilesToServer(files, stageNum);
+}
+
+function renderFileList(stageNum) {
+  var list = document.getElementById('file-list-' + stageNum);
+  if (!list) return;
+  var files = uploadedFiles[stageNum] || [];
+  list.innerHTML = files.map(function(f, i){
+    var icon = getFileIcon(f.name);
+    var size = formatBytes(f.size);
+    return '<div class="file-item">'
+      + '<div class="file-icon">' + icon + '</div>'
+      + '<div class="file-info"><div class="fname">' + esc(f.name) + '</div><div class="fsize">' + size + (f.uploading ? ' · Uploading...' : ' · Uploaded') + '</div></div>'
+      + '<button class="file-del" onclick="removeFile(' + stageNum + ',' + i + ')">✕</button>'
+      + '</div>';
+  }).join('');
+}
+
+function uploadFilesToServer(files, stageNum) {
+  if (!projectId) {
+    // Mark as uploaded locally
+    if (uploadedFiles[stageNum]) uploadedFiles[stageNum].forEach(function(f){ f.uploading = false; });
+    renderFileList(stageNum);
+    return;
+  }
+  var formData = new FormData();
+  Array.from(files).forEach(function(file){ formData.append('files', file); });
+  formData.append('project_id', projectId);
+  formData.append('category', 'Planning Document');
+  formData.append('pmbok_stage', stageNum);
+  fetch('/api/documents/upload', { method: 'POST', body: formData })
+    .then(function(r){ return r.json(); })
+    .then(function(){
+      if (uploadedFiles[stageNum]) uploadedFiles[stageNum].forEach(function(f){ f.uploading = false; });
+      renderFileList(stageNum);
+    })
+    .catch(function(){ if (uploadedFiles[stageNum]) uploadedFiles[stageNum].forEach(function(f){ f.uploading = false; }); renderFileList(stageNum); });
+}
+
+function removeFile(stageNum, idx) {
+  if (uploadedFiles[stageNum]) uploadedFiles[stageNum].splice(idx, 1);
+  renderFileList(stageNum);
+}
+
+function attachListHandlers() {
+  // Handled inline via onclick attributes
+}
+
+function deleteRow(btn, listId) {
+  var row = btn.closest('[data-sh-row],[data-ms-row],[data-budget-row],[data-risk-row],[data-team-row],[data-comms-row],[data-quality-row],[data-proc-row]');
+  if (row) row.remove();
+  updateStakeholderCount();
+}
+
+function getFileIcon(name) {
+  var ext = (name || '').split('.').pop().toLowerCase();
+  var map = { pdf:'📄', docx:'📝', doc:'📝', xlsx:'📊', xls:'📊', pptx:'📋', ppt:'📋', png:'🖼️', jpg:'🖼️', jpeg:'🖼️', dwg:'📐', dxf:'📐', ifc:'🏗️', csv:'📊', txt:'📄', zip:'🗜️' };
+  return map[ext] || '📎';
+}
+
+function formatBytes(bytes) {
+  if (!bytes) return '0 B';
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1048576) return (bytes/1024).toFixed(1) + ' KB';
+  return (bytes/1048576).toFixed(1) + ' MB';
+}
+
+function fmtCurrency(v, currency) {
+  var n = parseFloat(v) || 0;
+  if (!n) return '—';
+  var sym = { USD:'$', GBP:'£', EUR:'€', NGN:'₦', ZAR:'R', GHS:'GH₵', KES:'KSh', AED:'AED', CAD:'CA$', AUD:'A$' };
+  var s = (sym[currency] || '') + n.toLocaleString('en', { maximumFractionDigits:0 });
+  return s;
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>
