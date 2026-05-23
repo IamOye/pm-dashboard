@@ -40,28 +40,35 @@ body{display:flex;min-height:100vh;background:var(--bg);color:var(--text);font-f
 .nav-item{display:flex;align-items:center;gap:10px;padding:9px 20px;cursor:pointer;color:var(--muted);transition:all .15s;border-left:3px solid transparent;font-size:13px;font-weight:500;margin:1px 0;border-radius:0 8px 8px 0;margin-right:8px}
 .nav-item:hover{background:rgba(99,102,241,.12);color:var(--text-2)}
 .nav-item.active{background:rgba(99,102,241,.15);color:var(--accent-2);border-left-color:var(--accent);font-weight:600}
-/* Sidebar nav tooltips */
+/* Sidebar nav tooltips — glassmorphism */
 #nav-tip{
   position:fixed;left:0;top:0;
-  background:var(--card2,#111f33);
-  border:1px solid var(--border,rgba(255,255,255,.08));
+  min-width:210px;max-width:268px;
+  background:rgba(7,14,26,.84);
+  backdrop-filter:blur(20px) saturate(160%);
+  -webkit-backdrop-filter:blur(20px) saturate(160%);
+  border:1px solid rgba(255,255,255,.13);
   color:var(--text,#e8edf5);
   font-size:12px;line-height:1.5;
-  padding:8px 13px;border-radius:9px;
-  max-width:220px;
-  box-shadow:0 6px 24px rgba(0,0,0,.45);
+  padding:11px 15px;border-radius:13px;
+  box-shadow:0 12px 40px rgba(0,0,0,.55),0 2px 8px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.07);
   pointer-events:none;opacity:0;
-  transition:opacity .15s,transform .15s;
-  transform:translateX(6px);
+  transition:opacity .22s cubic-bezier(.22,1,.36,1),transform .24s cubic-bezier(.22,1,.36,1);
+  transform:translateY(-50%) translateX(12px) scale(.93);
   z-index:99999;white-space:normal;
 }
-#nav-tip.visible{opacity:1;transform:translateX(0)}
+#nav-tip.visible{opacity:1;transform:translateY(-50%) translateX(0) scale(1)}
 #nav-tip::before{
   content:'';position:absolute;
   right:100%;top:50%;transform:translateY(-50%);
   border:6px solid transparent;
-  border-right-color:var(--border,rgba(255,255,255,.08));
+  border-right-color:rgba(255,255,255,.13);
 }
+#nav-tip .tip-head{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+#nav-tip .tip-head svg{flex-shrink:0;opacity:.9}
+#nav-tip .tip-title{font-size:12px;font-weight:600;color:var(--text,#e8edf5)}
+#nav-tip .tip-count{font-size:11px;color:var(--vgs,#0F9E8A);font-weight:600;margin-bottom:3px}
+#nav-tip .tip-desc{font-size:11px;color:rgba(184,196,212,.75);line-height:1.45}
 /* .nav-icon handled by Lucide block below */
 
 /* MAIN */
@@ -319,7 +326,7 @@ tr:hover td{background:rgba(99,102,241,.07)}
 .doc-filters select,.doc-filters input{padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:var(--card);color:var(--text);font-family:inherit;outline:none}
 .doc-filters select:focus,.doc-filters input:focus{border-color:var(--accent)}
 .doc-filters input{flex:1;min-width:180px}
-.doc-stat-strip{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:20px}
+.doc-stat-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px}
 .doc-stat{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;box-shadow:var(--shadow)}
 .doc-stat .ds-num{font-size:22px;font-weight:800;color:var(--accent)}
 .doc-stat .ds-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-top:3px;font-weight:700;line-height:1.3}
@@ -413,7 +420,9 @@ tbody tr{transition:background .12s ease}
 .nav-group.open .nav-chevron{transform:rotate(90deg)}
 .nav-submenu{display:none;padding:2px 0 6px 0;overflow:hidden}
 .nav-group.open .nav-submenu{display:block;animation:fadeSlideUp .2s ease both}
-.nav-subitem{display:flex;align-items:center;gap:8px;padding:6px 20px 6px 38px;cursor:pointer;color:var(--muted);font-size:12px;font-weight:500;transition:all .15s;border-left:3px solid transparent;margin-right:8px;border-radius:0 8px 8px 0;white-space:nowrap}
+.nav-subitem{display:flex;align-items:center;gap:8px;padding:6px 12px 6px 36px;cursor:pointer;color:var(--muted);font-size:12px;font-weight:500;transition:all .15s;border-left:3px solid transparent;margin-right:8px;border-radius:0 8px 8px 0;overflow:hidden}
+.nav-subitem .subitem-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
+.nav-subitem .subitem-icon{flex-shrink:0;width:14px;height:14px;display:flex;align-items:center;justify-content:center}
 .nav-subitem:hover{background:rgba(99,102,241,.09);color:var(--text-2)}
 .nav-subitem.active{background:rgba(99,102,241,.12);color:var(--accent-2);border-left-color:var(--accent);font-weight:600}
 .nav-subitem .sub-count{margin-left:auto;background:var(--border);color:var(--muted);border-radius:10px;font-size:10px;padding:1px 6px}
@@ -3376,18 +3385,18 @@ function deleteMeeting(id) {
    DOCUMENT REGISTER
 ═══════════════════════════════════════════════ */
 const DOC_CATS = [
-  {key:'All',         label:'All Documents',          icon:'📁'},
-  {key:'Legal',       label:'Legal & Contractual',    icon:'⚖️'},
-  {key:'Regulatory',  label:'Regulatory & Compliance',icon:'🏛️'},
-  {key:'Design',      label:'Design & Technical',     icon:'📐'},
-  {key:'DocControl',  label:'Document Control',       icon:'🗂️'},
-  {key:'PM',          label:'Project Management',     icon:'📋'},
-  {key:'Commercial',  label:'Procurement & Commercial',icon:'💼'},
-  {key:'HSE',         label:'Health, Safety & Environment', icon:'🦺'},
-  {key:'QA',          label:'Quality Assurance',      icon:'✅'},
-  {key:'Governance',  label:'Governance & Registers', icon:'🛡️'},
-  {key:'Closeout',    label:'Closeout & Operations',  icon:'🏁'},
-  {key:'Minutes',     label:'Minutes & Correspondence',icon:'🗣️'},
+  {key:'All',        label:'All Documents',            short:'All Documents',         lucide:'folder-open',    desc:'Browse every registered document across all categories and projects.'},
+  {key:'Legal',      label:'Legal & Contractual',      short:'Legal & Contractual',   lucide:'scale',          desc:'Contracts, NDAs, legal agreements, and formal correspondence.'},
+  {key:'Regulatory', label:'Regulatory & Compliance',  short:'Regulatory',            lucide:'landmark',       desc:'Statutory permits, regulatory approvals, and compliance submissions.'},
+  {key:'Design',     label:'Design & Technical',       short:'Design & Technical',    lucide:'ruler',          desc:'Drawings, specifications, design reports, and BIM models.'},
+  {key:'DocControl', label:'Document Control',         short:'Document Control',      lucide:'archive',        desc:'Transmittals, document registers, and revision tracking schedules.'},
+  {key:'PM',         label:'Project Management',       short:'Project Management',    lucide:'clipboard-list', desc:'Project plans, programmes, status reports, and dashboards.'},
+  {key:'Commercial', label:'Procurement & Commercial', short:'Procurement',           lucide:'receipt',        desc:'BOQs, variations, payment certificates, and procurement records.'},
+  {key:'HSE',        label:'Health, Safety & Env.',    short:'Health & Safety',       lucide:'shield-check',   desc:'HSE plans, risk assessments, method statements, and incident logs.'},
+  {key:'QA',         label:'Quality Assurance',        short:'Quality Assurance',     lucide:'check-square',   desc:'QA plans, inspection records, test reports, and non-conformance reports.'},
+  {key:'Governance', label:'Governance & Registers',   short:'Governance',            lucide:'book-open',      desc:'Risk registers, action trackers, and stakeholder logs.'},
+  {key:'Closeout',   label:'Closeout & Operations',    short:'Closeout & Ops.',       lucide:'flag',           desc:'O&M manuals, commissioning records, and project handover documents.'},
+  {key:'Minutes',    label:'Minutes & Correspondence', short:'Minutes & Comms.',      lucide:'mail',           desc:'Meeting minutes, site memos, letters, and email correspondence.'},
 ];
 
 const DOC_STATUS_CLASS = {
@@ -3398,9 +3407,17 @@ const DOC_CAT_ICON = {
   Legal:'⚖️', Regulatory:'🏛️', Design:'📐', DocControl:'🗂️',
   PM:'📋', Commercial:'💼', HSE:'🦺', QA:'✅',
   Governance:'🛡️', Closeout:'🏁', Minutes:'🗣️',
-  // legacy aliases
   Drawings:'📐', QAQC:'✅'
 };
+// Lucide icon name lookup from DOC_CATS
+function catLucide(key) {
+  var c = DOC_CATS.find(function(x){return x.key===key;});
+  return c ? c.lucide : 'file';
+}
+function catLucideIcon(key,size){
+  size = size || 13;
+  return '<i data-lucide="'+catLucide(key)+'" style="width:'+size+'px;height:'+size+'px;vertical-align:-2px;flex-shrink:0"></i>';
+}
 
 let activeDocCat = 'All';
 
@@ -3438,10 +3455,14 @@ function renderDocuments() {
   const strip = document.getElementById('doc-stat-strip');
   if (strip) {
     strip.innerHTML =
-      '<div class="doc-stat"><div class="ds-num">'+docs.length+'</div><div class="ds-lbl">Total Documents</div></div>' +
+      '<div class="doc-stat" onclick="setDocCat(\'All\')" style="cursor:pointer"><div class="ds-num">'+docs.length+'</div><div class="ds-lbl"><i data-lucide="folder-open" style="width:12px;height:12px;vertical-align:-1px"></i>\u00a0All Documents</div></div>' +
       statCats.map(function(c){
-        return '<div class="doc-stat"><div class="ds-num" style="color:var(--text)">'+docs.filter(function(d){return d.cat===c;}).length+'</div><div class="ds-lbl">'+(DOC_CAT_ICON[c]||'')+'\u00a0'+c+'</div></div>';
+        var cat = DOC_CATS.find(function(x){return x.key===c;})||{label:c,lucide:'file'};
+        var cnt = docs.filter(function(d){return d.cat===c;}).length;
+        return '<div class="doc-stat" onclick="setDocCat(\''+c+'\')" style="cursor:pointer"><div class="ds-num" style="color:var(--text)">'+cnt+'</div>'
+          +'<div class="ds-lbl"><i data-lucide="'+cat.lucide+'" style="width:12px;height:12px;vertical-align:-1px"></i>\u00a0'+cat.label+'</div></div>';
       }).join('');
+    if (window.lucide) lucide.createIcons({el: strip});
   }
 
   // cat tabs
@@ -3449,8 +3470,9 @@ function renderDocuments() {
   if (tabsEl) {
     tabsEl.innerHTML = DOC_CATS.map(c => {
       const cnt = c.key==='All' ? docs.length : docs.filter(d=>d.cat===c.key).length;
-      return `<button class="doc-cat-tab${activeDocCat===c.key?' active':''}" onclick="setDocCat('${c.key}')">${c.icon} ${c.label} <span class="dtab-count">${cnt}</span></button>`;
+      return `<button class="doc-cat-tab${activeDocCat===c.key?' active':''}" onclick="setDocCat('${c.key}')"><i data-lucide="${c.lucide}" style="width:13px;height:13px;vertical-align:-2px;margin-right:4px"></i>${c.label} <span class="dtab-count">${cnt}</span></button>`;
     }).join('');
+    if (window.lucide) lucide.createIcons({el: tabsEl});
   }
 
   // table
@@ -3514,11 +3536,17 @@ function buildDocNavSubmenu() {
   if (!submenu) return;
   submenu.innerHTML = DOC_CATS.map(function(c) {
     var cnt = c.key === 'All' ? docs.length : docs.filter(function(d){ return d.cat === c.key; }).length;
-    return '<div class="nav-subitem' + (activeDocCat === c.key ? ' active' : '') + '" data-cat="' + c.key + '" onclick="setDocCat(\'' + c.key + '\')">'
-      + c.icon + ' ' + c.label
+    var tipData = JSON.stringify({lucide:c.lucide, title:c.label, count:cnt, desc:c.desc});
+    return '<div class="nav-subitem' + (activeDocCat === c.key ? ' active' : '') + '"'
+      + ' data-cat="' + c.key + '"'
+      + ' data-tipdata=\'' + tipData.replace(/'/g,'&#39;') + '\''
+      + ' onclick="setDocCat(\'' + c.key + '\')">'
+      + '<span class="subitem-icon"><i data-lucide="' + c.lucide + '" style="width:13px;height:13px"></i></span>'
+      + '<span class="subitem-label">' + c.short + '</span>'
       + '<span class="sub-count">' + cnt + '</span>'
       + '</div>';
   }).join('');
+  if (window.lucide) lucide.createIcons({el: submenu});
 }
 
 function showDocForm(editId) {
@@ -6706,35 +6734,75 @@ function buildExportRows() {
 (function(){
   var tip = document.getElementById('nav-tip');
   var hideTimer;
-  function showNavTip(el){
-    clearTimeout(hideTimer);
-    var text = el.getAttribute('data-tip');
-    if(!text || !tip) return;
-    tip.innerHTML = text;
+
+  function positionTip(el) {
     var r = el.getBoundingClientRect();
     var sidebar = document.querySelector('.sidebar');
-    var sw = sidebar ? sidebar.getBoundingClientRect().right : 220;
-    var ty = r.top + r.height/2;
+    var sw = sidebar ? sidebar.getBoundingClientRect().right : 240;
+    var ty = r.top + r.height / 2;
+    // clamp so tip doesn't go off screen vertically
+    var tipH = tip.offsetHeight || 80;
+    ty = Math.max(tipH/2 + 8, Math.min(window.innerHeight - tipH/2 - 8, ty));
     tip.style.left = (sw + 14) + 'px';
     tip.style.top = ty + 'px';
-    tip.style.transform = 'translateY(-50%) translateX(6px)';
+  }
+
+  function showNavTip(el) {
+    clearTimeout(hideTimer);
+    var plain = el.getAttribute('data-tip');
+    var rich  = el.getAttribute('data-tipdata');
+    if (!tip) return;
+
+    if (rich) {
+      try {
+        var d = JSON.parse(rich.replace(/&#39;/g,"'"));
+        var countStr = d.count + ' document' + (d.count !== 1 ? 's' : '');
+        tip.innerHTML =
+          '<div class="tip-head">'
+          + '<i data-lucide="' + d.lucide + '" style="width:14px;height:14px"></i>'
+          + '<span class="tip-title">' + d.title + '</span>'
+          + '</div>'
+          + '<div class="tip-count">' + countStr + '</div>'
+          + '<div class="tip-desc">' + d.desc + '</div>';
+        if (window.lucide) lucide.createIcons({el: tip});
+      } catch(e) { tip.innerHTML = plain || ''; }
+    } else if (plain) {
+      tip.innerHTML = '<div class="tip-title">' + plain + '</div>';
+    } else { return; }
+
+    positionTip(el);
     tip.classList.remove('visible');
     requestAnimationFrame(function(){
       requestAnimationFrame(function(){
-        tip.style.transform = 'translateY(-50%) translateX(0)';
         tip.classList.add('visible');
       });
     });
   }
-  function hideNavTip(){
+
+  function hideNavTip() {
     hideTimer = setTimeout(function(){
-      if(tip){ tip.classList.remove('visible'); }
-    }, 80);
+      if (tip) tip.classList.remove('visible');
+    }, 90);
   }
+
+  // Main nav items (static — bind once)
   document.querySelectorAll('.nav-item[data-tip]').forEach(function(el){
     el.addEventListener('mouseenter', function(){ showNavTip(el); });
     el.addEventListener('mouseleave', hideNavTip);
   });
+
+  // Doc sub-items (dynamic — use delegation on sidebar)
+  var sidebar = document.querySelector('.sidebar-nav');
+  if (sidebar) {
+    sidebar.addEventListener('mouseover', function(e){
+      var sub = e.target.closest('.nav-subitem[data-tipdata]');
+      if (sub) showNavTip(sub);
+    });
+    sidebar.addEventListener('mouseout', function(e){
+      var sub = e.target.closest('.nav-subitem[data-tipdata]');
+      if (sub) hideNavTip();
+    });
+  }
 })();
 
 /* ═══════════════════════════════════════════
