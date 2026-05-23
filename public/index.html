@@ -40,18 +40,18 @@ body{display:flex;min-height:100vh;background:var(--bg);color:var(--text);font-f
 .nav-item{display:flex;align-items:center;gap:10px;padding:9px 20px;cursor:pointer;color:var(--muted);transition:all .15s;border-left:3px solid transparent;font-size:13px;font-weight:500;margin:1px 0;border-radius:0 8px 8px 0;margin-right:8px}
 .nav-item:hover{background:rgba(99,102,241,.12);color:var(--text-2)}
 .nav-item.active{background:rgba(99,102,241,.15);color:var(--accent-2);border-left-color:var(--accent);font-weight:600}
-/* Sidebar nav tooltips — glassmorphism */
+/* Sidebar nav tooltips — light grey */
 #nav-tip{
   position:fixed;left:0;top:0;
   min-width:210px;max-width:268px;
-  background:rgba(7,14,26,.84);
-  backdrop-filter:blur(20px) saturate(160%);
-  -webkit-backdrop-filter:blur(20px) saturate(160%);
-  border:1px solid rgba(255,255,255,.13);
-  color:var(--text,#e8edf5);
+  background:rgba(235,237,240,.97);
+  backdrop-filter:blur(12px) saturate(140%);
+  -webkit-backdrop-filter:blur(12px) saturate(140%);
+  border:1px solid rgba(0,0,0,.10);
+  color:#111;
   font-size:12px;line-height:1.5;
   padding:11px 15px;border-radius:13px;
-  box-shadow:0 12px 40px rgba(0,0,0,.55),0 2px 8px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.07);
+  box-shadow:0 8px 32px rgba(0,0,0,.18),0 2px 8px rgba(0,0,0,.10),inset 0 1px 0 rgba(255,255,255,.8);
   pointer-events:none;opacity:0;
   transition:opacity .22s cubic-bezier(.22,1,.36,1),transform .24s cubic-bezier(.22,1,.36,1);
   transform:translateY(-50%) translateX(12px) scale(.93);
@@ -62,13 +62,13 @@ body{display:flex;min-height:100vh;background:var(--bg);color:var(--text);font-f
   content:'';position:absolute;
   right:100%;top:50%;transform:translateY(-50%);
   border:6px solid transparent;
-  border-right-color:rgba(255,255,255,.13);
+  border-right-color:rgba(235,237,240,.97);
 }
 #nav-tip .tip-head{display:flex;align-items:center;gap:7px;margin-bottom:5px}
-#nav-tip .tip-head svg{flex-shrink:0;opacity:.9}
-#nav-tip .tip-title{font-size:12px;font-weight:600;color:var(--text,#e8edf5)}
-#nav-tip .tip-count{font-size:11px;color:var(--vgs,#0F9E8A);font-weight:600;margin-bottom:3px}
-#nav-tip .tip-desc{font-size:11px;color:rgba(184,196,212,.75);line-height:1.45}
+#nav-tip .tip-head svg{flex-shrink:0;opacity:.75;color:#333}
+#nav-tip .tip-title{font-size:12px;font-weight:600;color:#111}
+#nav-tip .tip-count{font-size:11px;color:#0a7d6e;font-weight:600;margin-bottom:3px}
+#nav-tip .tip-desc{font-size:11px;color:#444;line-height:1.45}
 /* .nav-icon handled by Lucide block below */
 
 /* MAIN */
